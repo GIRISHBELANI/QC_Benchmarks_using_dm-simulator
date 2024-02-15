@@ -1,5 +1,5 @@
 """
-Bernstein-Vazirani Benchmark Program - Qiskit
+Bernstein-Vazirani Benchmark Program - QSim
 """
 
 import sys
@@ -8,8 +8,8 @@ import time
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-sys.path[1:1] = [ "_common", "_common/qiskit" ]
-sys.path[1:1] = [ "../../_common", "../../_common/qiskit" ]
+sys.path[1:1] = [ "_common", "_common/qsim" ]
+sys.path[1:1] = [ "../../_common", "../../_common/qsim" ]
 import execute as ex
 import metrics as metrics
 
@@ -141,11 +141,12 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
 
 # Execute program with default parameters
 def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100,
-        backend_id='qasm_simulator', method = 1, provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        backend_id='dm_simulator', method = 1, provider_backend=None,
+        #hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):
 
-    print(f"{benchmark_name} ({method}) Benchmark Program - Qiskit")
+    print(f"{benchmark_name} ({method}) Benchmark Program - QSim")
 
     # validate parameters (smallest circuit is 3 qubits)
     max_qubits = max(3, max_qubits)
@@ -178,7 +179,8 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=10
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+           # hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
     # for noiseless simulation, set noise model to be None
@@ -233,7 +235,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=10
     if method == 1: print("\nQuantum Oracle 'Uf' ="); print(Uf_ if Uf_ != None else " ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - Qiskit",
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim",
                          transform_qubit_group = transform_qubit_group, new_qubit_group = mid_circuit_qubit_group)
 
 # if main, execute method

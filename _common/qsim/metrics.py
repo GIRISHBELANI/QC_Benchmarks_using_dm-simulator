@@ -362,6 +362,7 @@ def get_circuit_stats_for_metric(group, metric, precision):
             metric_array.append(circuit_metrics[group][circuit][metric])
         else:
             metric_array.append(None)
+    
     metric_array = [x for x in metric_array if x is not None]
     if len(metric_array) == 0:
         return 0, 0
@@ -410,7 +411,7 @@ def report_metrics_for_group (group):
             print(f"Average Creation, Elapsed, Execution Time for the {group} qubit group = {avg_create_time}, {avg_elapsed_time}, {avg_exec_time} secs")
             
             # report these detailed times, but only if they have been collected (i.e., len of array > 0)
-            # not all backedns generate these data elements
+            # not all backends generate these data elements
             if len(group_metrics["avg_exec_creating_times"]) > 0:
                 if len(group_metrics["avg_exec_creating_times"]) > group_index:
                     avg_exec_creating_time = group_metrics["avg_exec_creating_times"][group_index]
@@ -472,8 +473,7 @@ def finalize_group(group, report=True):
         
     # sort the group metrics (sometimes they come back out of order)
     sort_group_metrics()
-
-
+    
 #finalize_group(group, report=True);
 
 # sort the group array as integers, then all metrics relative to it
@@ -735,10 +735,27 @@ def polarization_fidelity(counts, correct_dist, thermal_dist=None):
     """
     
     # get length of random key in correct_dist to find how many qubits measured
-    num_measured_qubits = len(list(correct_dist.keys())[0])
+    # num_measured_qubits = len(list(correct_dist.keys())[0])
+    
+    #above line is giving error "object of type 'numpy.float64' has no len()" while executing mc_validations.pynb below is the tried code for eliminating error
+    # get keys from correct_dist
+    keys = correct_dist.keys()
+
+    # check if keys is a numpy array or a list
+    if isinstance(keys, list):
+       # keys is a list, use its length
+       num_measured_qubits = len(keys)
+    elif isinstance(keys, np.ndarray):
+       # keys is a numpy array, use its size
+       num_measured_qubits = keys.size
+    else:
+       # keys is neither a list nor a numpy array, handle it accordingly
+       num_measured_qubits = 1  # default to 1 if keys is not iterable
+
     
     # ensure that all keys in counts are zero padded to this length
-    counts = {k.zfill(num_measured_qubits): v for k, v in counts.items()}
+    
+    counts = {str(k).zfill(num_measured_qubits): v for k, v in counts.items()}
     
     # calculate hellinger fidelity between measured expectation values and correct distribution
     hf_fidelity = hellinger_fidelity_with_expected(counts, correct_dist)
@@ -1415,7 +1432,7 @@ def modify_elapsed_times(avg_elapsed_times, avg_exec_creating_times, avg_exec_ti
     
 #################################################
 
-# DEVNOTE: this function is not used, as the overlaid rectanges are not useful
+# DEVNOTE: this function is not used, as the overlaid rectangles are not useful
 
 # Plot metrics over all groups (2)
 def plot_metrics_all_overlaid (shared_data, backend_id, suptitle=None, imagename="_ALL-vplot-1"):    

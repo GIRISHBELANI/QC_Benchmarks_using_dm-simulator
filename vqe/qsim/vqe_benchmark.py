@@ -1,5 +1,5 @@
 """
-Variational Quantum Eigensolver Benchmark Program - Qiskit
+Variational Quantum Eigensolver Benchmark Program - QSim
 """
 
 import json
@@ -12,8 +12,8 @@ from qiskit import QuantumCircuit, QuantumRegister
 from qiskit.opflow import PauliTrotterEvolution, Suzuki
 from qiskit.opflow.primitive_ops import PauliSumOp
 
-sys.path[1:1] = ["_common", "_common/qiskit"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit"]
+sys.path[1:1] = ["_common", "_common/qsim"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim"]
 import execute as ex
 import metrics as metrics
 
@@ -307,11 +307,12 @@ MAX_QUBITS = 12
 # Execute program with default parameters
 def run(min_qubits=4, max_qubits=8, skip_qubits=1,
         max_circuits=3, num_shots=4092, method=1,
-        backend_id="qasm_simulator", provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        backend_id="dm_simulator", provider_backend=None,
+        #hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):
 
-    print(f"{benchmark_name} ({method}) Benchmark Program - Qiskit") 
+    print(f"{benchmark_name} ({method}) Benchmark Program - QSim") 
 
     max_qubits = max(max_qubits, min_qubits)        # max must be >= min
 
@@ -360,7 +361,8 @@ def run(min_qubits=4, max_qubits=8, skip_qubits=1,
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+            #hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
     ##########
@@ -440,7 +442,7 @@ def run(min_qubits=4, max_qubits=8, skip_qubits=1,
     print("\nCluster Operator Example 'Cluster Op' ="); print(CO_ if CO_ != None else " ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - Qiskit")
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim")
 
 # if main, execute methods     
 if __name__ == "__main__": run()

@@ -21,7 +21,7 @@ benchmark_algorithms = [
 
 # Add algorithms to path:
 for algorithm in benchmark_algorithms:
-    sys.path.insert(1, os.path.join(f"{algorithm}", "qiskit"))
+    sys.path.insert(1, os.path.join(f"{algorithm}", "qsim"))
 
 import ae_benchmark
 import bv_benchmark
@@ -46,11 +46,11 @@ if __name__ == "__main__":
     parser.add_argument("--max_qubits", default=8, help="Maximum number of qubits", type=int)
     parser.add_argument("--max_circuits", default=3, help="Maximum number of circuits", type=int)
     parser.add_argument("--num_shots", default=100, help="Number of shots.", type=int)
-    parser.add_argument("--backend_id", default="qasm_simulator", help="Backend simulator or hardware string", type=str)
+    parser.add_argument("--backend_id", default="dm_simulator", help="Backend simulator or hardware string", type=str)
     parser.add_argument("--provider_backend", default=None, help="Provider backend name.", type=str)
-    parser.add_argument("--hub", default="ibm-q", help="Computing group hub.", type=str)
-    parser.add_argument("--group", default="open", help="Group status", type=str)
-    parser.add_argument("--project", default="main", help="Project", type=str)
+    # parser.add_argument("--hub", default="ibm-q", help="Computing group hub.", type=str)
+    # parser.add_argument("--group", default="open", help="Group status", type=str)
+    # parser.add_argument("--project", default="main", help="Project", type=str)
     parser.add_argument("--provider_module_name", default=None, help="Hardware Provider Module Name", type= str)
     parser.add_argument("--provider_class_name", default=None, help="Hardware Provider Class Name", type= str)
     parser.add_argument("--noise_model", default=None, help="Custom Noise model defined in Custom Folder", type= str)
@@ -122,9 +122,9 @@ if __name__ == "__main__":
         "num_shots": args.num_shots,
         "backend_id": args.backend_id,
         "provider_backend": args.provider_backend,
-        "hub": args.hub,
-        "group": args.group,
-        "project": args.project,
+        # "hub": args.hub,
+        # "group": args.group,
+        # "project": args.project,
         "exec_options": args.exec_options,
     }
 

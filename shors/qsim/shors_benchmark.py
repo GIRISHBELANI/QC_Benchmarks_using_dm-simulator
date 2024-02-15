@@ -1,5 +1,5 @@
 """
-Shor's Order Finding Algorithm Benchmark - Qiskit
+Shor's Order Finding Algorithm Benchmark - QSim
 """
 
 import math
@@ -9,8 +9,8 @@ import time
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-sys.path[1:1] = ["_common", "_common/qiskit", "shors/_common", "quantum-fourier-transform/qiskit"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../shors/_common", "../../quantum-fourier-transform/qiskit"]
+sys.path[1:1] = ["_common", "_common/qsim", "shors/_common", "quantum-fourier-transform/qsim"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../shors/_common", "../../quantum-fourier-transform/qsim"]
 import execute as ex
 import metrics as metrics
 from shors_utils import getAngles, getAngle, modinv, generate_base, verify_order
@@ -338,11 +338,12 @@ def analyze_and_print_result(qc, result, num_qubits, order, num_shots, method):
 
 # Execute program with default parameters
 def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
-        verbose=verbose, backend_id='qasm_simulator', provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        verbose=verbose, backend_id='dm_simulator', provider_backend=None,
+        #hub="ibm-q", group="open", project="main", 
+         exec_options=None,
         context=None):
 
-    print(f"{benchmark_name} ({method}) Benchmark - Qiskit")
+    print(f"{benchmark_name} ({method}) Benchmark - QSim")
 
     # Each method has a different minimum amount of qubits to run and a certain multiple of qubits that can be run
     qubit_multiple = 2                  #Standard for Method 2 and 3
@@ -383,7 +384,8 @@ def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+          #  hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
  
     ##########
@@ -448,7 +450,7 @@ def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
     print("\nQFT Circuit ="); print(QFT_ if QFT_ != None else "  ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - Qiskit")
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim")
 
     
 # if main, execute method

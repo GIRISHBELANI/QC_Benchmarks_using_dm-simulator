@@ -1,5 +1,5 @@
 """
-Monte Carlo Sampling Benchmark Program via Amplitude Estimation- Qiskit
+Monte Carlo Sampling Benchmark Program via Amplitude Estimation- QSim
 """
 
 import copy
@@ -13,8 +13,8 @@ from numpy.polynomial.polynomial import polyfit
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 from qiskit.circuit.library.standard_gates.ry import RYGate
 
-sys.path[1:1] = ["_common", "_common/qiskit", "monte-carlo/_common", "quantum-fourier-transform/qiskit"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../monte-carlo/_common", "../../quantum-fourier-transform/qiskit"]
+sys.path[1:1] = ["_common", "_common/qsim", "monte-carlo/_common", "quantum-fourier-transform/qsim"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../monte-carlo/_common", "../../quantum-fourier-transform/qsim"]
 import execute as ex
 import mc_utils as mc_utils
 import metrics as metrics
@@ -362,11 +362,12 @@ MAX_QUBITS=10
 # Execute program with default parameters
 def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num_shots=100,
         epsilon=0.05, degree=2, num_state_qubits=MIN_STATE_QUBITS, method = 2, # default, not exposed to users
-        backend_id='qasm_simulator', provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        backend_id='dm_simulator', provider_backend=None,
+       # hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):
 
-    print(f"{benchmark_name} ({method}) Benchmark Program - Qiskit")
+    print(f"{benchmark_name} ({method}) Benchmark Program - QSim")
 
     # Clamp the maximum number of qubits
     if max_qubits > MAX_QUBITS:
@@ -414,7 +415,8 @@ def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+            #hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
     ##########
@@ -486,7 +488,7 @@ def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num
     print("\nInverse QFT Circuit ="); print(QFTI_ if QFTI_ != None else "  ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - Qiskit")
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim")
        
         
 # if main, execute method

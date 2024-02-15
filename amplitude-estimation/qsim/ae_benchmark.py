@@ -1,5 +1,5 @@
 """
-Amplitude Estimation Benchmark Program via Phase Estimation - Qiskit
+Amplitude Estimation Benchmark Program via Phase Estimation - QSim
 """
 
 import copy
@@ -9,8 +9,8 @@ import time
 import numpy as np
 from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 
-sys.path[1:1] = ["_common", "_common/qiskit", "quantum-fourier-transform/qiskit"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../quantum-fourier-transform/qiskit"]
+sys.path[1:1] = ["_common", "_common/qsim", "quantum-fourier-transform/qsim"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-transform/qsim"]
 
 
 import execute as ex
@@ -232,10 +232,11 @@ MAX_QUBITS=8
 def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100,
         num_state_qubits=1, # default, not exposed to users
         backend_id='qasm_simulator', provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+       # hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):
 
-    print(f"{benchmark_name} Benchmark Program - Qiskit")
+    print(f"{benchmark_name} Benchmark Program - QSim")
 
     # Clamp the maximum number of qubits
     if max_qubits > MAX_QUBITS:
@@ -270,7 +271,8 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+            #hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
     ##########
@@ -330,7 +332,7 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
     print("\nInverse QFT Circuit ="); print(QFTI_ if QC_ != None else "  ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - Qiskit")
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - QSim")
 
 
 # if main, execute method

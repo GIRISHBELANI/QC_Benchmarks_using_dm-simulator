@@ -1,5 +1,5 @@
 """
-HHL Benchmark Program - Qiskit
+HHL Benchmark Program - QSim
 
 """
 
@@ -20,8 +20,8 @@ import uniform_controlled_rotation as ucr
 #sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../quantum-fourier-transform/qiskit"]
 
 # cannot use the QFT common yet, as HHL seems to use reverse bit order
-sys.path[1:1] = ["_common", "_common/qiskit", "quantum-fourier-transform/qiskit"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../quantum-fourier-transform/qiskit"]
+sys.path[1:1] = ["_common", "_common/qsim", "quantum-fourier-transform/qsim"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-transform/qsim"]
 #from qft_benchmark import qft_gate, inv_qft_gate
 
 import execute as ex
@@ -651,8 +651,9 @@ def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
 
 def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100,
         method = 1, use_best_widths=True,
-        backend_id='qasm_simulator', provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        backend_id='dm_simulator', provider_backend=None,
+        #hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):  
 
     # we must have at least 4 qubits and min must be less than max
@@ -696,7 +697,8 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=10
             max_circuits=max_circuits, num_shots=num_shots, 
             method=method, use_best_widths=use_best_widths,
             backend_id=backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+           # hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
 
@@ -708,8 +710,9 @@ def run2 (min_input_qubits=1, max_input_qubits=3, skip_qubits=1,
         min_clock_qubits=1, max_clock_qubits=3,
         max_circuits=3, num_shots=100,
         method=2, use_best_widths=False,
-        backend_id='qasm_simulator', provider_backend=None,
-        hub="ibm-q", group="open", project="main", exec_options=None,
+        backend_id='dm_simulator', provider_backend=None,
+      #  hub="ibm-q", group="open", project="main", 
+        exec_options=None,
         context=None):  
     
     print(f"{benchmark_name} Benchmark Program - Qiskit")
@@ -755,7 +758,8 @@ def run2 (min_input_qubits=1, max_input_qubits=3, skip_qubits=1,
     # Initialize execution module using the execution result handler above and specified backend_id
     ex.init_execution(execution_handler)
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-            hub=hub, group=group, project=project, exec_options=exec_options,
+           # hub=hub, group=group, project=project, 
+            exec_options=exec_options,
             context=context)
 
     # for noiseless simulation, set noise model to be None
@@ -838,7 +842,7 @@ def run2 (min_input_qubits=1, max_input_qubits=3, skip_qubits=1,
     print("\nControlled Rotation Circuit ="); print(INVROT_ if INVROT_ != None else "  ... too large!")
 
     # Plot metrics for all circuit sizes
-    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - Qiskit",
+    metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - QSim",
                          transform_qubit_group = transform_qubit_group, new_qubit_group = mid_circuit_qubit_group)
 
 # if main, execute method

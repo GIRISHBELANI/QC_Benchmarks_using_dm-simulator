@@ -1,5 +1,5 @@
 """
-MaxCut Benchmark Program - Qiskit
+MaxCut Benchmark Program - QSim
 """
 
 import datetime
@@ -15,12 +15,12 @@ from collections import namedtuple
 import numpy as np
 from scipy.optimize import minimize
 
-from qiskit import (Aer, ClassicalRegister,  # for computing expectation tables
+from qiskit import (BasicAer, ClassicalRegister,  # for computing expectation tables
                     QuantumCircuit, QuantumRegister, execute, transpile)
 from qiskit.circuit import ParameterVector
 
-sys.path[1:1] = [ "_common", "_common/qiskit", "maxcut/_common" ]
-sys.path[1:1] = [ "../../_common", "../../_common/qiskit", "../../maxcut/_common/" ]
+sys.path[1:1] = [ "_common", "_common/qsim", "maxcut/_common" ]
+sys.path[1:1] = [ "../../_common", "../../_common/qsim", "../../maxcut/_common/" ]
 import common
 import execute as ex
 import metrics as metrics
@@ -258,7 +258,7 @@ def compute_expectation(qc, num_qubits, secret_int, backend_id='statevector_simu
         qc = qc.bind_parameters(params)
     
     #execute statevector simulation
-    sv_backend = Aer.get_backend(backend_id)
+    sv_backend = BasicAer.get_backend(backend_id)
     sv_result = execute(qc, sv_backend).result()
 
     # get the probability distribution
@@ -912,9 +912,9 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
         fixed_metrics={}, num_x_bins=15, y_size=None, x_size=None, use_fixed_angles=False,
         objective_func_type = 'approx_ratio', plot_results = True,
         save_res_to_file = False, save_final_counts = False, detailed_save_names = False, comfort=False,
-        backend_id='qasm_simulator', provider_backend=None, eta=0.5,
-        hub="ibm-q", group="open", project="main", exec_options=None,
-        context=None,
+        backend_id='dm_simulator', provider_backend=None, eta=0.5,
+        #hub="ibm-q", group="open", project="main", 
+        exec_options=None, context=None,
         _instances=None):
     """
     Parameters
@@ -1001,8 +1001,8 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
     dict_of_inputs = {**dict_of_inputs, **{'thetas_array': thetas, 'max_circuits' : max_circuits}}
     
     # Delete some entries from the dictionary
-    for key in ["hub", "group", "project", "provider_backend", "exec_options"]:
-        dict_of_inputs.pop(key)
+    # for key in ["hub", "group", "project", "provider_backend", "exec_options"]:
+    #     dict_of_inputs.pop(key)
     
     global maxcut_inputs
     maxcut_inputs = dict_of_inputs
@@ -1012,7 +1012,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
     global minimizer_loop_index
     global opt_ts
     
-    print(f"{benchmark_name} ({method}) Benchmark Program - Qiskit")
+    print(f"{benchmark_name} ({method}) Benchmark Program - QSim")
 
     QC_ = None
     
@@ -1098,7 +1098,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
     
     # initialize the execution module with target information
     ex.set_execution_target(backend_id, provider_backend=provider_backend,
-        hub=hub, group=group, project=project, 
+       # hub=hub, group=group, project=project, 
         exec_options=exec_options,
         context=context
     )
@@ -1330,7 +1330,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
 
     # Plot metrics for all circuit sizes
     if method == 1:
-        metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - Qiskit",
+        metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim",
                 options=dict(shots=num_shots,rounds=rounds))
     elif method == 2:
         #metrics.print_all_circuit_metrics()
@@ -1361,9 +1361,9 @@ def plot_results_from_data(num_shots=100, rounds=1, degree=3, max_iter=30, max_c
         
     obj_str = metrics.known_score_labels[objective_func_type]
     options = {'shots' : num_shots, 'rounds' : rounds, 'degree' : degree, 'restarts' : max_circuits, 'fixed_angles' : use_fixed_angles, '\nObjective Function' : obj_str}
-    suptitle = f"Benchmark Results - MaxCut ({method}) - Qiskit"
+    suptitle = f"Benchmark Results - MaxCut ({method}) - QSim"
     
-    metrics.plot_all_area_metrics(f"Benchmark Results - MaxCut ({method}) - Qiskit",
+    metrics.plot_all_area_metrics(f"Benchmark Results - MaxCut ({method}) - QSim",
                 score_metric=score_metric, x_metric=x_metric, y_metric=y_metric,
                 fixed_metrics=fixed_metrics, num_x_bins=num_x_bins,
                 x_size=x_size, y_size=y_size, x_min=x_min, x_max=x_max,
