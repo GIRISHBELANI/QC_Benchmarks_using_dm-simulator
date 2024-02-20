@@ -1,27 +1,77 @@
-# Preparing to Run Benchmarks
+# Qiskit dm_simulator User Guide
+***
+The details about the implementation of the density matrix simulator is given in the `arxiv` paper [1908.05154](https://arxiv.org/abs/1908.05154).
+## Installation
+> **Optional :** We advise you to use a virtual environment to install the files. Virtual environment can be created using `conda`.  
+>
+> ```bash
+> conda create -y -n QiskitAakash python=3
+> ```
+> See [this](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) for instruction to install `conda` into your system. You may also give a different name to the environment. In that case, replace QiskitAakash with the name of your choice in the above and below instructions
+>
+> You can activate/deactivate the virtual environment.
+> ```bash
+> conda activate QiskitAakash
+> conda deactivate
+> ```
+> Once you have activated the virtual environment follow the instructions below.
 
-You can run the benchmarks in Qiskit, Cirq, Braket, or Q#. For each of the programming environments supported by this project, there is a subdirectory containing detailed information about requirements and operational conventions. To view this information, along with instructions on how to to configure a unique environment for the API of your choice, follow the links in [Links to API Specific Setup](#links-to-api-specific-setup) below.
+Installing from source requires that you have the Rust compiler on your system. To install the Rust compiler the recommended path is to use rustup, which is a cross-platform Rust installer. To use rustup you can go to:
 
-All versions of the benchmark programs require that you have available the Python interpreter (**version 3.6 or later**), and have installed the necessary Python packages in a virtual environment. If you have a proper Python environment available, you may go directly to your preferred API directory by following one of the links under [Links to API Specific Setup](#links-to-api-specific-setup). For instructions on how to download Python and set up a base virtual environment, see [General Environment Setup](#general-environment-setup) below.
+https://rustup.rs/
 
-## Links to API Specific Setup
-* [Qiskit](qiskit/README.md)
-* [Qiskit in Azure Quantum](qiskit-azure-quantum/README.md)
-* [Cirq](cirq/README.md)
-* [Braket](braket/README.md)
-* [Ocean](ocean/README.md)
-* [Q# (Comming soon)](README.md)
+which will provide instructions for how to install rust on your platform. Besides rustup there are other [installation methods](https://forge.rust-lang.org/infra/other-installation-methods.html) available too.
 
-# General Environment Setup
+Once the Rust compiler is installed, you are ready to install Qiskit Aakash.
+1. Clone the qiskit-aakash repo and enter it.
+```bash
+git clone https://github.com/indian-institute-of-science-qc/qiskit-aakash.git
+cd qiskit-aakash
+```
+2. If you want to run tests or linting checks, install the developer requirements.
+```bash
+pip install -r requirements-dev.txt
+```
+3. Install qiskit-aakash.
+```bash
+pip install .
+```
+If you want to install in editable mode, use 
+```bash
+pip install -e .
+```
 
-**Note**: All instructions contained here describe configuring a Windows environment to run the benchmark programs. Similar procedures will be used in a Linux environment using appropriate syntax of course.
+> If you want to use it in [`Google Colab`](https://colab.research.google.com/) (easier and convenient but only works online)then the same commands will work
+> ```
+> !git clone https://github.com/indian-institute-of-science-qc/qiskit-aakash.git && python3 -m pip install qiskit-aakash/
+> ```
 
-If you do not already have Python available, a convenient way to set one up is to download a minimum version of the Anaconda package (called Miniconda). Go to the URL below and follow the instructions to set up the "Miniconda" package.
+The code for the new back-end `dm_simulator` can be found in [`dm_simulator.py`](qiskit/providers/basicaer/dm_simulator.py).
+This back-end also uses some functionalities from [`basicaertools.py`](qiskit/providers/basicaer/basicaertools.py).
 
-    https://docs.conda.io/projects/conda/en/latest/user-guide/install/download.html
-
-Once you have installed the Miniconda package, from the Windows Start menu launch an Anaconda prompt in which you will run the programs. It is recommended that you create a conda "environment" to hold the specific set of Python packages you will install to run the benchmark programs. We recommend you create a separate conda environment for each API. Details for creating environments is specific to each API and can be found under the *'Configure a \<API\> Environment'* by following one of the links under [Links to API Specific Setup](#links-to-api-specific-setup).
-
-See the link below for additional resources on conda environments.
-
-    https://docs.conda.io/projects/conda/en/latest/user-guide/tasks/manage-environments.html
+## Example
+Once installed, files can be changed and run in python (for instructions to use the qiskit-terra part of the software, please visit [here](https://github.com/Qiskit/qiskit-terra)). For example,
+```bash
+python3
+```
+```python
+from qiskit import QuantumCircuit,BasicAer,execute
+qc = QuantumCircuit(2)
+# Gates
+qc.x(1)
+qc.cx(0,1)
+# execution
+backend = BasicAer.get_backend('dm_simulator')
+run = execute(qc,backend)
+result = run.result()
+print(result.results[0].data.densitymatrix)
+```
+It would output the resultant `densitymatrix` as,
+```python
+[[0 0 0 0]
+[0 1 0 0]
+[0 0 0 0]
+[0 0 0 0]]
+```
+There are some `jupyter` notebooks in the repository which provide detailed examples about how to use this simulator.
+Those can be viewed in [`Github`](dm_simulator_user_guide/user_guide.ipynb). But the easiest way to interact with them is by using [`Binder Image`](https://mybinder.org/v2/gh/indian-institute-of-science-qc/qiskit-aakash/master?filepath=.%2Fdm_simulator_user_guide%2Fuser_guide.ipynb).
