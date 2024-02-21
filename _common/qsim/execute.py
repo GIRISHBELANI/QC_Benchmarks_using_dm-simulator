@@ -115,7 +115,7 @@ width_processor = None
 
 # Selection of basis gate set for transpilation
 # Note: selector 1 is a hardware agnostic gate set
-basis_selector = 1            #change the values of basis_selector to get the difference in circuit depth (ref: basis_gates_array[basis_selector])
+basis_selector = 2           #change the values of basis_selector to get the difference in circuit depth (ref: basis_gates_array[basis_selector])
 basis_gates_array = [
     [],
     ['rx', 'ry', 'rz', 'cx'],       # a common basis set, default
@@ -563,16 +563,17 @@ def execute_circuit(circuit):
             # Initiate execution (with noise if specified and this is a simulator backend)
             # Noise parameters
             options = {}
-            options_noise = {
-                    "thermal_factor": 0.,
-                    "decoherence_factor": .9,
-                    "depolarization_factor": 0.99,
-                    "bell_depolarization_factor": 0.99,
-                    "decay_factor": 0.99,
-                    "rotation_error": {'rx':[1., 0.], 'ry':[1., 0.], 'rz': [1., 0.]},
-                    "tsp_model_error": [1., 0.],
-                    "plot": False
-            }
+            options_noise = {                       #if Noise is not None
+                    'plot': False,
+                    "thermal_factor": 0.0,
+                    'show_partition': False,
+                    "decoherence_factor": 0.9,
+                    "depolarization_factor": 0.9,
+                    "bell_depolarization_factor": 0.9,
+                    "decay_factor": 0.9,
+                    "rotation_error": {'rx':[1.0, 0.0], 'ry':[1.0, 0.0], 'rz':[1.0, 0.0]},
+                    "tsp_model_error": [1.0, 0.0],
+                }
             
             if options_noise is not None and not use_sessions and backend_name.endswith("dm_simulator"):
                 logger.info(f"Performing noisy simulation, shots = {shots}")
@@ -606,8 +607,8 @@ def execute_circuit(circuit):
 
                 # Execution with and without noise
                 
-                # job = execute(trans_qc,backend,**options)             #for noiseless simulator
-                job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
+                job = execute(trans_qc,backend,**options)             #for noiseless simulator
+                # job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
                 result = job.result()
                     
                 logger.info(f'Finished Running on noisy simulator - {round(time.time() - st, 5)} (ms)')
@@ -1069,15 +1070,20 @@ def job_complete(job):
                     
                     # Add the probabilities to the total sum
                     total_prob_sum += sum(partial_probabilities.values())
-                else:
-                    print("Warning: 'partial_probability' not found in experiment result.")
 
-            
+                # Check if 'ensemble_probability' is present in the 'data' dictionary
+                elif "ensemble_probability" in data:
+                    ensemble_probabilities = data["ensemble_probability"]
+                        
+                # Add the probabilities to the total sum
+                    total_prob_sum += sum(ensemble_probabilities.values())
+                else:
+                    print("Warning: 'partial_probability' and 'ensemble_probability' not found in experiment result.")
+
             # Print the total sum of probabilities
             # print(f"Total Sum of Probabilities === {total_prob_sum}")
 
             actual_shots = active_circuit["shots"]*total_prob_sum
-
             # print(f"Total no. of shots === {actual_shots}")
 
 
