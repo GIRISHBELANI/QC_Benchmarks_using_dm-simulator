@@ -449,7 +449,6 @@ def report_metrics ():
     for group in circuit_metrics:
         report_metrics_for_group(group)
 
-       
 # Aggregate and report on metrics for the given groups, if all circuits in the group are complete
 def finalize_group(group, report=True):
     group = str(group)
@@ -611,7 +610,7 @@ def process_iteration_metrics(group_id):
       
     del circuit_metrics[g_id]
     return iterations_metrics
- 
+
  
 # convenience functions to print all circuit metrics (for debugging)
 
@@ -662,19 +661,24 @@ def hellinger_fidelity_with_expected(p, q):
         Qiskit Hellinger Fidelity Function
     """
     p_sum = sum(p.values())
+    # print(f"p_sum ======== {p_sum}")
     q_sum = sum(q.values())
+    # print(f"q_sum ======== {q_sum}")
 
     if q_sum == 0:
         print("ERROR: polarization_fidelity(), expected distribution is invalid, all counts equal to 0")
         return 0
 
     p_normed = {}
+    # print(f"p.items() ======== {p.items()}")
     for key, val in p.items():
         p_normed[key] = val/p_sum
+    # print(f"p_normed ======== {p_normed}")
 
     q_normed = {}
     for key, val in q.items():
         q_normed[key] = val/q_sum
+    # print(f"q_normed ======== {q_normed}")
 
     total = 0
     for key, val in p_normed.items():
@@ -684,6 +688,8 @@ def hellinger_fidelity_with_expected(p, q):
         else:
             total += val
     total += sum(q_normed.values())
+
+    # print(f"total ======== {total}")
     
     # in some situations (error mitigation) this can go negative, use abs value
     if total < 0:
@@ -691,8 +697,9 @@ def hellinger_fidelity_with_expected(p, q):
         total = abs(total)
         
     dist = np.sqrt(total)/np.sqrt(2)
+    # print(f"dist ======== {dist}")
     fidelity = (1-dist**2)**2
-
+    # print(f"fidelity ======== {fidelity}")
     return fidelity
     
 def rescale_fidelity(fidelity, floor_fidelity, new_floor_fidelity):
@@ -738,19 +745,26 @@ def polarization_fidelity(counts, correct_dist, thermal_dist=None):
     # num_measured_qubits = len(list(correct_dist.keys())[0])
     
     #above line is giving error "object of type 'numpy.float64' has no len()" while executing mc_validations.pynb below is the tried code for eliminating error
+    
+    def isiterable(obj):
+        try:
+            iter(obj)
+            return True
+        except TypeError:
+            return False
+
     # get keys from correct_dist
     keys = correct_dist.keys()
-
-    # check if keys is a numpy array or a list
-    if isinstance(keys, list):
-       # keys is a list, use its length
-       num_measured_qubits = len(keys)
-    elif isinstance(keys, np.ndarray):
-       # keys is a numpy array, use its size
-       num_measured_qubits = keys.size
+    
+    # check if keys is iterable
+    if isiterable(keys) and (isinstance(keys, list) or (isinstance(keys, np.ndarray) and keys.size > 0)):
+        num_measured_qubits = len(keys)
     else:
-       # keys is neither a list nor a numpy array, handle it accordingly
-       num_measured_qubits = 1  # default to 1 if keys is not iterable
+        # keys is not iterable, handle it accordingly
+        # num_measured_qubits = 1
+    
+        # get length of random key in correct_dist to find how many qubits measured
+        num_measured_qubits = len(list(correct_dist.keys())[0])
 
     
     # ensure that all keys in counts are zero padded to this length
@@ -3719,7 +3733,7 @@ def anno_volumetric_data(ax, depth_base=2, label='Depth',
             horizontalalignment='left', verticalalignment='baseline',
             color=(0.2,0.2,0.2),
             clip_on=True)
- 
+
 # Return the x and y equivalent to a single pixel for the given plot axis
 def get_pixel_dims(ax):
 

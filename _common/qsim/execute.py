@@ -607,8 +607,14 @@ def execute_circuit(circuit):
 
                 # Execution with and without noise
                 
-                job = execute(trans_qc,backend,**options)             #for noiseless simulator
+                print("\n\n*************Job executing without Noise in simulator*************\n")
+                job = execute(trans_qc,backend,**options)               #for noiseless simulator
+                
+                
+                # print("\n\n*************Job executing with Noise in simulator*************\n")
                 # job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
+                
+                
                 result = job.result()
                     
                 logger.info(f'Finished Running on noisy simulator - {round(time.time() - st, 5)} (ms)')
@@ -1061,7 +1067,7 @@ def job_complete(job):
             # Iterate through experiments and sum up probabilities
             
             for experiment in result_obj["results"]:
-                # print(experiment)
+                # print("\n\n Experiment =========== ", experiment)
                 data = experiment["data"]
         
                 # Check if 'partial_probability' is present in the 'data' dictionary
