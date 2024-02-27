@@ -14,6 +14,8 @@ sys.path[1:1] = [ "../../_common", "../../_common/qsim" ]
 import execute as ex
 import metrics as metrics
 
+from qiskit.circuit.library import QFT
+
 # Benchmark Name
 benchmark_name = "Quantum Fourier Transform"
 
@@ -202,6 +204,25 @@ def expected_dist(num_qubits, secret_int, counts):
             dist[key] = 1/(2**s)
     return dist
 
+# to combine the probabilities of ensemble probability
+
+def combine_probabilities(prob, num_qubits):
+    proj_prob = {}
+    input_size = num_qubits-1
+    # Generate binary combinations for n qubits
+    binary_combinations = [bin(i)[2:].zfill(input_size) for i in range(2**input_size)]
+
+    # Combine probabilities and errors for each projection
+    if input_size<2:
+        for i in range(2**(input_size-1)):
+            proj_prob[bin(i)[2:].zfill(input_size-1)] = prob.get(bin(i)[2:].zfill(input_size-1) + '0', 0) + prob.get(bin(i)[2:].zfill(input_size-1) + '1', 0)
+    else:
+        for i in range(2**(input_size-1)):
+            proj_prob[bin(i)[2:].zfill(input_size-1) + '0'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '0' + str(j)] for j in range(2))
+            proj_prob[bin(i)[2:].zfill(input_size-1) + '1'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '1' + str(j)] for j in range(2))
+
+    return proj_prob
+
 ############### Result Data Analysis
 
 # Analyze and print measured results
@@ -324,7 +345,7 @@ def run (min_qubits = 2, max_qubits = 8, max_circuits = 3, skip_qubits=1, num_sh
 
             # create the circuit for given qubit size and secret string, store time metric
             ts = time.time()
-            qc = QuantumFourierTransform(num_qubits, s_int, method=method)
+            qc = QuantumFourierTransform(num_qubits, s_int, method=method).reverse_bits()
             metrics.store_metric(input_size, s_int, 'create_time', time.time()-ts)
 
             # collapse the sub-circuits used in this benchmark (for qiskit)

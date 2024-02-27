@@ -55,7 +55,9 @@ def GroversSearch(num_qubits, marked_item, n_iterations):
     qc.barrier()
         
     # measure all qubits
-    qc.measure(qr, cr)
+    # qc.measure(qr, cr)                                        # to get the partial_probability
+    qc.measure(qr, cr, basis='Ensemble', add_param='Z')       # to get the ensemble_probability 
+
 
     # save smaller circuit example for display
     global QC_    
@@ -186,17 +188,17 @@ def add_mcx(qc, controls, target):
 # Expected result is always the secret_int, so fidelity calc is simple
 def analyze_and_print_result(qc, result, num_qubits, marked_item, num_shots):
     
-    counts = result.get_counts(qc)
-    if verbose: print(f"For type {marked_item} measured: {counts}")
+    probs = result.get_counts(qc)
+    if verbose: print(f"For type {marked_item} measured: {probs}")
 
     # we compare counts to analytical correct distribution
     correct_dist = grovers_dist(num_qubits, marked_item)
     if verbose: print(f"Marked item: {marked_item}, Correct dist: {correct_dist}")
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
 
-    return counts, fidelity
+    return probs, fidelity
 
 def grovers_dist(num_qubits, marked_item):
     
@@ -205,7 +207,7 @@ def grovers_dist(num_qubits, marked_item):
     dist = {}
 
     for i in range(2**num_qubits):
-        key = bin(i)[2:].zfill(num_qubits)
+        key = bin(i)[2:].zfill(num_qubits)[::-1] 
         theta = np.arcsin(1/np.sqrt(2 ** num_qubits))
         
         if i == int(marked_item):
@@ -260,7 +262,7 @@ def run(min_qubits=2, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100
 
         # determine fidelity of result set
         num_qubits = int(num_qubits)
-        counts, fidelity = analyze_and_print_result(qc, result, num_qubits, int(s_int), num_shots)
+        probs, fidelity = analyze_and_print_result(qc, result, num_qubits, int(s_int), num_shots)
         metrics.store_metric(num_qubits, s_int, 'fidelity', fidelity)
 
     # Initialize execution module using the execution result handler above and specified backend_id

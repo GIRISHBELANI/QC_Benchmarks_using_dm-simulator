@@ -104,7 +104,8 @@ def DeutschJozsa (num_qubits, type):
     qc.barrier()
     
     for i in range(input_size):
-        qc.measure(i, i)
+        # qc.measure(i, i)                                             # to get the partial_probability
+        qc.measure(i, i, basis = 'Ensemble', add_param = 'Z')          # to get the ensemble_probability
     
     # save smaller circuit and oracle subcircuit example for display
     global QC_
@@ -114,6 +115,27 @@ def DeutschJozsa (num_qubits, type):
     # return a handle to the circuit
     return qc
 
+
+# to combine the probabilities of ensemble probability
+
+def combine_probabilities(prob, num_qubits):
+    proj_prob = {}
+    input_size = num_qubits-1
+    # Generate binary combinations for n qubits
+    binary_combinations = [bin(i)[2:].zfill(input_size) for i in range(2**input_size)]
+
+    # Combine probabilities and errors for each projection
+    if input_size<2:
+        for i in range(2**(input_size-1)):
+            proj_prob[bin(i)[2:].zfill(input_size-1)] = prob.get(bin(i)[2:].zfill(input_size-1) + '0', 0) + prob.get(bin(i)[2:].zfill(input_size-1) + '1', 0)
+    else:
+        for i in range(2**(input_size-1)):
+            proj_prob[bin(i)[2:].zfill(input_size-1) + '0'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '0' + str(j)] for j in range(2))
+            proj_prob[bin(i)[2:].zfill(input_size-1) + '1'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '1' + str(j)] for j in range(2))
+
+    return proj_prob
+
+
 ############### Result Data Analysis
 
 # Analyze and print measured results
@@ -122,10 +144,14 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     
     # Size of input is one less than available qubits
     input_size = num_qubits - 1
+    
+    # obtain counts from the result object for qc.measure(i, i) getting partial_probability
+    probs = result.get_counts(qc)
 
-    # obtain counts from the result object
-    counts = result.get_counts(qc)
-    if verbose: print(f"For type {type} measured: {counts}")
+    # obtain counts from the result object for qc.measure(i, i, basis='Ensemble', add_param='Z')
+    probs = combine_probabilities(probs, num_qubits)    
+
+    if verbose: print(f"For type {type} measured: {probs}")
     
     # create the key that is expected to have all the measurements (for this circuit)
     if type == 0: key = '0'*input_size
@@ -135,9 +161,9 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     correct_dist = {key: 1.0}
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
 
-    return counts, fidelity
+    return probs, fidelity
 
 ################ Benchmark Loop
 
