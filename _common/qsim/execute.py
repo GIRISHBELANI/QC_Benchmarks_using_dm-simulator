@@ -40,7 +40,6 @@ from qiskit.providers.jobstatus import JobStatus
 # QED-C modules
 import metrics
 
-
 ##########################
 # JOB MANAGEMENT VARIABLES 
 
@@ -125,6 +124,55 @@ basis_gates_array = [
     ['u', 'cx']                     # general unitaries basis gates
 ]
 
+######################################################################
+
+use_noise = input("Do you want to introduce noise? (y/n): ").lower() == 'y'
+
+def validate_error(value):
+    try:
+        value_list = [float(x) for x in value.split(',')]
+        if len(value_list) == 2 and 0 <= value_list[0] <= 1 and 0 <= value_list[1] <= 1:
+            return value_list
+        else:
+            raise ValueError("Invalid input. Please enter two real numbers between 0 and 1 (inclusive).")
+    except ValueError:
+        return [1.0, 0.0]
+        
+if not use_noise:
+    options_noise = {
+        'plot': False,
+        "thermal_factor": 1.0,
+        'show_partition': False,
+        "decoherence_factor": 1.0,
+        "depolarization_factor": 1.0,
+        "bell_depolarization_factor": 1.0,
+        "decay_factor": 1.0,
+        "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
+        "tsp_model_error": [1.0, 0.0],
+    }
+else:
+    options_noise = {
+        'plot': False,  # Assuming plot is not required for noise parameters
+        'show_partition': input('Show partition? (True/False): ').lower() == 'true' or False,       # Use False if input is empty
+        'thermal_factor': float(input('Enter thermal factor: ') or 1.0),                            # Use 1.0 if input is empty
+        'decoherence_factor': float(input('Enter decoherence factor: ') or 1.0),                    # Use 1.0 if input is empty
+        'depolarization_factor': float(input('Enter depolarization factor: ') or 1.0),              # Use 1.0 if input is empty
+        'bell_depolarization_factor': float(input('Enter Bell depolarization factor: ') or 1.0),    # Use 1.0 if input is empty
+        'decay_factor': float(input('Enter decay factor: ') or 1.0),                                # Use 1.0 if input is empty
+        'rotation_error': {
+            'rx': validate_error(input('Enter rotation error for rx gate (comma-separated values, e.g., 1.0, 0.0): ')),
+            'ry': validate_error(input('Enter rotation error for ry gate (comma-separated values, e.g., 1.0, 0.0): ')),
+            'rz': validate_error(input('Enter rotation error for rz gate (comma-separated values, e.g., 1.0, 0.0): ')),
+        },
+        'tsp_model_error': validate_error(input('Enter TSP model error (comma-separated values, e.g., 1.0, 0.0): ')),
+    }
+
+# Print the values or defaults after each parameter
+print("\nOptions with noise:")
+for key, value in options_noise.items():
+    print(f"{key}: {value}")
+    
+
 #######################
 # SUPPORTING CLASSES
 
@@ -163,7 +211,6 @@ class Job:
         
     def result(self):
         return self.executor_result
-
 
 ######################################################################
 # INITIALIZATION METHODS
@@ -561,19 +608,10 @@ def execute_circuit(circuit):
             
             #************************************************
             # Initiate execution (with noise if specified and this is a simulator backend)
-            # Noise parameters
-            options = {}
-            options_noise = {                       #if Noise is not None
-                    'plot': False,
-                    "thermal_factor": 0.0,
-                    'show_partition': False,
-                    "decoherence_factor": 0.9,
-                    "depolarization_factor": 0.9,
-                    "bell_depolarization_factor": 0.9,
-                    "decay_factor": 0.9,
-                    "rotation_error": {'rx':[1.0, 0.0], 'ry':[1.0, 0.0], 'rz':[1.0, 0.0]},
-                    "tsp_model_error": [1.0, 0.0],
-                }
+       
+            print("\nOptions with noise:")
+            for key, value in options_noise.items():
+                print(f"{key}: {value}")
             
             if options_noise is not None and not use_sessions and backend_name.endswith("dm_simulator"):
                 logger.info(f"Performing noisy simulation, shots = {shots}")
@@ -607,12 +645,12 @@ def execute_circuit(circuit):
 
                 # Execution with and without noise
                 
-                print("\n\n*************Job executing without Noise in simulator*************\n")
-                job = execute(trans_qc,backend,**options)               #for noiseless simulator
+                # print("\n\n*************Job executing without Noise in simulator*************\n")
+                # job = execute(trans_qc,backend,**options)               #for noiseless simulator
                 
                 
                 # print("\n\n*************Job executing with Noise in simulator*************\n")
-                # job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
+                job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
                 
                 
                 result = job.result()
