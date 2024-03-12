@@ -124,56 +124,67 @@ basis_gates_array = [
     ['u', 'cx']                     # general unitaries basis gates
 ]
 
-######################################################################
 
-use_noise = input("Do you want to introduce noise? (y/n): ").lower() == 'y'
+#########################################################################################
 
-def validate_error(value):
-    try:
-        value_list = [float(x) for x in value.split(',')]
-        if len(value_list) == 2 and 0 <= value_list[0] <= 1 and 0 <= value_list[1] <= 1:
-            return value_list
-        else:
-            raise ValueError("Invalid input. Please enter two real numbers between 0 and 1 (inclusive).")
-    except ValueError:
-        return [1.0, 0.0]
-        
-if not use_noise:
-    options_noise = {
-        'plot': False,
-        "thermal_factor": 1.0,
-        'show_partition': False,
-        "decoherence_factor": 1.0,
-        "depolarization_factor": 1.0,
-        "bell_depolarization_factor": 1.0,
-        "decay_factor": 1.0,
-        "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
-        "tsp_model_error": [1.0, 0.0],
-    }
-else:
-    options_noise = {
-        'plot': False,  # Assuming plot is not required for noise parameters
-        'show_partition': input('Show partition? (True/False): ').lower() == 'true' or False,       # Use False if input is empty
-        'thermal_factor': float(input('Enter thermal factor: ') or 1.0),                            # Use 1.0 if input is empty
-        'decoherence_factor': float(input('Enter decoherence factor: ') or 1.0),                    # Use 1.0 if input is empty
-        'depolarization_factor': float(input('Enter depolarization factor: ') or 1.0),              # Use 1.0 if input is empty
-        'bell_depolarization_factor': float(input('Enter Bell depolarization factor: ') or 1.0),    # Use 1.0 if input is empty
-        'decay_factor': float(input('Enter decay factor: ') or 1.0),                                # Use 1.0 if input is empty
-        'rotation_error': {
-            'rx': validate_error(input('Enter rotation error for rx gate (comma-separated values, e.g., 1.0, 0.0): ')),
-            'ry': validate_error(input('Enter rotation error for ry gate (comma-separated values, e.g., 1.0, 0.0): ')),
-            'rz': validate_error(input('Enter rotation error for rz gate (comma-separated values, e.g., 1.0, 0.0): ')),
-        },
-        'tsp_model_error': validate_error(input('Enter TSP model error (comma-separated values, e.g., 1.0, 0.0): ')),
-    }
-
-# Print the values or defaults after each parameter
-print("\nOptions with noise:")
-for key, value in options_noise.items():
-    print(f"{key}: {value}")
+# When you want to give parameters through command-line arguments
+import argparse, ast
     
+def float_between_0_and_1(value):
+    fvalue = float(value)
+    if not 0 <= fvalue <= 1:
+        raise argparse.ArgumentTypeError(f"{value} needed to be between 0 and 1")
+    return fvalue
 
-#######################
+options_noise = {
+    'plot': False,
+    "thermal_factor": 1.0,
+    'show_partition': False,
+    "decoherence_factor": 1.0,
+    "depolarization_factor": 1.0,
+    "bell_depolarization_factor": 1.0,
+    "decay_factor": 1.0,
+    "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
+    "tsp_model_error": [1.0, 0.0],
+}
+
+parser = argparse.ArgumentParser(description="Run benchmark")
+
+# Add arguments to the parser
+parser.add_argument("--plot", default=False, help="Enable plotting", action="store_true")
+parser.add_argument("--thermal_factor", default=1.0, type=float_between_0_and_1, help="Specify thermal factor (between 0 and 1)")
+parser.add_argument("--show_partition", default=False, help="Show partition", action="store_true")
+parser.add_argument("--decoherence_factor", default=1.0, type=float_between_0_and_1, help="Specify decoherence factor (between 0 and 1)")
+parser.add_argument("--depolarization_factor", default=1.0, type=float_between_0_and_1, help="Specify depolarization factor (between 0 and 1)")
+parser.add_argument("--bell_depolarization_factor", default=1.0, type=float_between_0_and_1, help="Specify Bell depolarization factor (between 0 and 1)")
+parser.add_argument("--decay_factor", default=1.0, type=float_between_0_and_1, help="Specify decay factor (between 0 and 1)")
+parser.add_argument("--rotation_error", nargs=6, type=float_between_0_and_1, default=[1.0, 0.0, 1.0, 0.0, 1.0, 0.0], help="Specify rotation error values (rx, ry, rz) between 0 and 1")
+parser.add_argument("--tsp_model_error", nargs=2, type=float_between_0_and_1, default=[1.0, 0.0], help="Specify TSP model error values between 0 and 1")
+
+
+def local_args():
+    # Parse the command-line arguments
+    args = parser.parse_args()
+
+    # Update the options_noise dictionary with the parsed arguments
+    options_noise['plot'] = args.plot
+    options_noise['thermal_factor'] = args.thermal_factor
+    options_noise['show_partition'] = args.show_partition
+    options_noise['decoherence_factor'] = args.decoherence_factor
+    options_noise['depolarization_factor'] = args.depolarization_factor
+    options_noise['bell_depolarization_factor'] = args.bell_depolarization_factor
+    options_noise['decay_factor'] = args.decay_factor
+    options_noise['rotation_error'] = {'rx': args.rotation_error[0:2], 'ry': args.rotation_error[2:4], 'rz': args.rotation_error[4:6]}
+    options_noise['tsp_model_error'] = args.tsp_model_error
+    
+    # Print the updated options_noise dictionary
+    print("Updated options_noise dictionary:", options_noise)
+
+    # python3 benchmark_filename.py --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
+    # python3 benchmark_filename.py --plot --show_partition --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
+
+
+###############################################################################################################
 # SUPPORTING CLASSES
 
 # class BenchmarkResult is made for sessions runs. This is because
@@ -608,7 +619,19 @@ def execute_circuit(circuit):
             
             #************************************************
             # Initiate execution (with noise if specified and this is a simulator backend)
-       
+
+            # options_noise = {
+            #     'plot': False,
+            #     "thermal_factor": 1.0,
+            #     'show_partition': False,
+            #     "decoherence_factor": 1.0,
+            #     "depolarization_factor": 1.0,
+            #     "bell_depolarization_factor": 1.0,
+            #     "decay_factor": 1.0,
+            #     "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
+            #     "tsp_model_error": [1.0, 0.0],
+            # }
+            
             print("\nOptions with noise:")
             for key, value in options_noise.items():
                 print(f"{key}: {value}")
@@ -647,7 +670,6 @@ def execute_circuit(circuit):
                 
                 # print("\n\n*************Job executing without Noise in simulator*************\n")
                 # job = execute(trans_qc,backend,**options)               #for noiseless simulator
-                
                 
                 # print("\n\n*************Job executing with Noise in simulator*************\n")
                 job = execute(trans_qc,backend,**options_noise)         #for noisy simulator

@@ -104,8 +104,8 @@ def DeutschJozsa (num_qubits, type):
     qc.barrier()
     
     for i in range(input_size):
-        # qc.measure(i, i)                                             # to get the partial_probability
-        qc.measure(i, i, basis = 'Ensemble', add_param = 'Z')          # to get the ensemble_probability
+        qc.measure(i, i)                                             # to get the partial_probability
+        # qc.measure(i, i, basis = 'Ensemble', add_param = 'Z')          # to get the ensemble_probability
     
     # save smaller circuit and oracle subcircuit example for display
     global QC_
@@ -149,7 +149,7 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     probs = result.get_counts(qc)
 
     # obtain counts from the result object for qc.measure(i, i, basis='Ensemble', add_param='Z')
-    probs = combine_probabilities(probs, num_qubits)    
+    # probs = combine_probabilities(probs, num_qubits)    
 
     if verbose: print(f"For type {type} measured: {probs}")
     
@@ -249,4 +249,8 @@ def run (min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=10
     metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - QSim")
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__': 
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()

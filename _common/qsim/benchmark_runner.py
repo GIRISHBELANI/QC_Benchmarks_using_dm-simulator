@@ -3,6 +3,7 @@ import ast
 import argparse
 import os
 import sys
+import execute as ex
 
 benchmark_algorithms = [
     "amplitude-estimation",
@@ -27,7 +28,7 @@ import ae_benchmark
 import bv_benchmark
 import dj_benchmark
 import grovers_benchmark
-import hamiltonian_simulation_benchmark
+# import hamiltonian_simulation_benchmark
 import hs_benchmark
 import maxcut_benchmark
 import mc_benchmark
@@ -36,6 +37,23 @@ import qft_benchmark
 import shors_benchmark
 import vqe_benchmark
 
+def float_between_0_and_1(value):
+    fvalue = float(value)
+    if not 0 <= fvalue <= 1:
+        raise argparse.ArgumentTypeError(f"{value} needed to be between 0 and 1")
+    return fvalue
+
+options_noise = {
+    'plot': False,
+    "thermal_factor": 1.0,
+    'show_partition': False,
+    "decoherence_factor": 1.0,
+    "depolarization_factor": 1.0,
+    "bell_depolarization_factor": 1.0,
+    "decay_factor": 1.0,
+    "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
+    "tsp_model_error": [1.0, 0.0],
+}
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run benchmarking")
@@ -53,8 +71,21 @@ if __name__ == "__main__":
     # parser.add_argument("--project", default="main", help="Project", type=str)
     parser.add_argument("--provider_module_name", default=None, help="Hardware Provider Module Name", type= str)
     parser.add_argument("--provider_class_name", default=None, help="Hardware Provider Class Name", type= str)
-    parser.add_argument("--noise_model", default=None, help="Custom Noise model defined in Custom Folder", type= str)
+    parser.add_argument("--noise_model", default=None, help="Custom Noise model defined in Custom Folder", type= str) 
     parser.add_argument("--exec_options", default={}, help="Additional execution options", type=ast.literal_eval)
+    parser.add_argument("--options_noise", default={}, help="Add Noise values", type=ast.literal_eval)
+
+    # Add arguments to the parser
+    parser.add_argument("--plot", default=False, help="Enable plotting", action="store_true")
+    parser.add_argument("--thermal_factor", default=1.0, type=float_between_0_and_1, help="Specify thermal factor (between 0 and 1)")
+    parser.add_argument("--show_partition", default=False, help="Show partition", action="store_true")
+    parser.add_argument("--decoherence_factor", default=1.0, type=float_between_0_and_1, help="Specify decoherence factor (between 0 and 1)")
+    parser.add_argument("--depolarization_factor", default=1.0, type=float_between_0_and_1, help="Specify depolarization factor (between 0 and 1)")
+    parser.add_argument("--bell_depolarization_factor", default=1.0, type=float_between_0_and_1, help="Specify Bell depolarization factor (between 0 and 1)")
+    parser.add_argument("--decay_factor", default=1.0, type=float_between_0_and_1, help="Specify decay factor (between 0 and 1)")
+    parser.add_argument("--rotation_error", nargs=6, type=float_between_0_and_1, default=[1.0, 0.0, 1.0, 0.0, 1.0, 0.0], help="Specify rotation error values (rx, ry, rz) between 0 and 1")
+    parser.add_argument("--tsp_model_error", nargs=2, type=float_between_0_and_1, default=[1.0, 0.0], help="Specify TSP model error values between 0 and 1")
+    # python3 deutsch-jozsa/qsim/dj_benchmark.py --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
 
     # Additional arguments required by other algorithms.
     parser.add_argument("--epsilon", default=0.05, help="Used for Monte-Carlo", type=float)
@@ -93,6 +124,19 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
+    # # Update the options_noise dictionary with the parsed arguments
+    options_noise['plot'] = args.plot
+    options_noise['thermal_factor'] = args.thermal_factor
+    options_noise['show_partition'] = args.show_partition
+    options_noise['decoherence_factor'] = args.decoherence_factor
+    options_noise['depolarization_factor'] = args.depolarization_factor
+    options_noise['bell_depolarization_factor'] = args.bell_depolarization_factor
+    options_noise['decay_factor'] = args.decay_factor
+    options_noise['rotation_error'] = {'rx': args.rotation_error[0:2], 'ry': args.rotation_error[2:4], 'rz': args.rotation_error[4:6]}
+    options_noise['tsp_model_error'] = args.tsp_model_error
+
+    ex.options_noise = options_noise   # to update the options_noise dictionary of execute.py file
+    
     # For Inserting the Noise model default into exec option as it is function call 
     if args.noise_model is not None :
         
