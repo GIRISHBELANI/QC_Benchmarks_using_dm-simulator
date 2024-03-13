@@ -323,4 +323,8 @@ def run(min_qubits=2, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100
 
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__':
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+        
+    run()

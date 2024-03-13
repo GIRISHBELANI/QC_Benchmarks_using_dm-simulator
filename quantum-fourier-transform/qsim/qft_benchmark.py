@@ -375,4 +375,8 @@ def run (min_qubits = 2, max_qubits = 8, max_circuits = 3, skip_qubits=1, num_sh
     metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim")
 
 # if main, execute method 1
-if __name__ == '__main__': run()
+if __name__ == '__main__':     
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+        
+    run()
