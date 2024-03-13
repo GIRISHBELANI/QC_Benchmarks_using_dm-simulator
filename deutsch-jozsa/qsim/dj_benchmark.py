@@ -105,7 +105,6 @@ def DeutschJozsa (num_qubits, type):
     
     for i in range(input_size):
         qc.measure(i, i)                                             # to get the partial_probability
-        # qc.measure(i, i, basis = 'Ensemble', add_param = 'Z')          # to get the ensemble_probability
     
     # save smaller circuit and oracle subcircuit example for display
     global QC_
@@ -114,27 +113,6 @@ def DeutschJozsa (num_qubits, type):
 
     # return a handle to the circuit
     return qc
-
-
-# to combine the probabilities of ensemble probability
-
-def combine_probabilities(prob, num_qubits):
-    proj_prob = {}
-    input_size = num_qubits-1
-    # Generate binary combinations for n qubits
-    binary_combinations = [bin(i)[2:].zfill(input_size) for i in range(2**input_size)]
-
-    # Combine probabilities and errors for each projection
-    if input_size<2:
-        for i in range(2**(input_size-1)):
-            proj_prob[bin(i)[2:].zfill(input_size-1)] = prob.get(bin(i)[2:].zfill(input_size-1) + '0', 0) + prob.get(bin(i)[2:].zfill(input_size-1) + '1', 0)
-    else:
-        for i in range(2**(input_size-1)):
-            proj_prob[bin(i)[2:].zfill(input_size-1) + '0'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '0' + str(j)] for j in range(2))
-            proj_prob[bin(i)[2:].zfill(input_size-1) + '1'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '1' + str(j)] for j in range(2))
-
-    return proj_prob
-
 
 ############### Result Data Analysis
 
@@ -147,9 +125,6 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     
     # obtain counts from the result object for qc.measure(i, i) getting partial_probability
     probs = result.get_counts(qc)
-
-    # obtain counts from the result object for qc.measure(i, i, basis='Ensemble', add_param='Z')
-    # probs = combine_probabilities(probs, num_qubits)    
 
     if verbose: print(f"For type {type} measured: {probs}")
     
