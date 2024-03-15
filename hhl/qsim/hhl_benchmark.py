@@ -201,7 +201,7 @@ def qft_gate(input_size, method=1):
                 phase = np.pi/2**(j-i)
                 qc.cp(phase, qr[i], qr[j])
                 
-    qc.barrier()   
+    qc.barrier()
 
     return qc
 
@@ -481,7 +481,7 @@ def make_circuit(A, b, num_clock_qubits):
     
     # and measure ancilla
     
-    qc.measure(qr_a[0], cr_a[0])
+    qc.measure(qr_a[0], cr_a[0], basis = "Ensemble", add_param = "Z")
     qc.reset(qr_a[0])
 
     qc.barrier()
@@ -525,7 +525,7 @@ def make_circuit(A, b, num_clock_qubits):
     ''' Perform final measurements '''
     
     # measure ancilla and main register
-    qc.measure(qr[0:], cr[0:])
+    qc.measure(qr[0:], cr[0:], basis = "Ensemble", add_param = "Z")
 
     if QC_ == None:
         QC_ = qc
@@ -588,7 +588,7 @@ def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
     saved_result = result
     
     # obtain counts from the result object
-    counts = result.get_counts(qc)
+    counts = result.get_counts(qc)           #probabilities
 
     if verbose:
         print(f"... for circuit = {num_qubits} {s_int}, counts = {counts}")

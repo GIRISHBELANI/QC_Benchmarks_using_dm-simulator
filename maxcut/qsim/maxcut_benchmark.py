@@ -119,7 +119,7 @@ def MaxCut (num_qubits, secret_int, edges, rounds, thetas_array, parameterized, 
         rounds = p
         print(f"WARNING: rounds is greater than length of thetas_array/2; using rounds={rounds}")
     
-    logger.info(f'*** Constructing NON-parameterized circuit for {num_qubits = } {secret_int}')
+    logger.info(f'*** Constructing NON-parameterized circuit for num_qubits = {num_qubits} secret_int = {secret_int}')
     
     # create parameters in the form expected by the ansatz generator
     # this is an array of betas followed by array of gammas, each of length = rounds
@@ -210,7 +210,7 @@ def MaxCut_param (num_qubits, secret_int, edges, rounds, thetas_array):
     
     # create the circuit the first time, add measurements
     if ex.do_transpile_for_execute:
-        logger.info(f'*** Constructing parameterized circuit for {num_qubits = } {secret_int}')
+        logger.info(f'*** Constructing parameterized circuit for num_qubits = {num_qubits} secret_int = {secret_int}')
         betas = ParameterVector("𝞫", p)
         gammas = ParameterVector("𝞬", p)
     
@@ -262,7 +262,7 @@ def compute_expectation(qc, num_qubits, secret_int, backend_id='statevector_simu
     sv_result = execute(qc, sv_backend).result()
 
     # get the probability distribution
-    counts = sv_result.get_counts()
+    counts = sv_result.get_counts()      
 
     #print(f"... statevector expectation = {counts}")
     
@@ -282,7 +282,8 @@ def get_expectation(num_qubits, degree, num_shots):
         
         # scale to number of shots
         for k, v in counts.items():
-            counts[k] = round(v * num_shots)
+            # counts[k] = round(v * num_shots)
+            counts[k] = v * num_shots
         
         # delete from the dictionary
         del expectations[id]
@@ -302,7 +303,8 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     global expected_dist
     
     # obtain counts from the result object
-    counts = result.get_counts(qc)
+    counts = result.get_counts(qc)          #probabilities
+    # print("\ncounts ===== ", counts)
     
     # retrieve pre-computed expectation values for the circuit that just completed
     expected_dist = get_expectation(num_qubits, secret_int, num_shots)
@@ -311,7 +313,8 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     # assume that the expectation is the same as measured counts, yielding fidelity = 1
     if expected_dist == None:
         expected_dist = counts
-    
+    # print("\nexpected_dist ====== ", expected_dist)
+
     if verbose: print(f"For width {num_qubits} problem {secret_int}\n  measured: {counts}\n  expected: {expected_dist}")
 
     # use our polarization fidelity rescaling
@@ -905,8 +908,8 @@ iter_size_dist = {'unique_sizes' : [], 'unique_counts' : [], 'cumul_counts' : []
 saved_result = {  }
 instance_filename = None
 
-def run (min_qubits=3, max_qubits=6, skip_qubits=2,
-        max_circuits=1, num_shots=100,
+def run (min_qubits=3, max_qubits=8, skip_qubits=2,
+        max_circuits=1, num_shots=1,               # for dm-simulator num_shots=1
         method=1, rounds=1, degree=3, alpha=0.1, thetas_array=None, parameterized= False, do_fidelities=True,
         max_iter=30, score_metric='fidelity', x_metric='cumulative_exec_time', y_metric='num_qubits',
         fixed_metrics={}, num_x_bins=15, y_size=None, x_size=None, use_fixed_angles=False,
@@ -1161,6 +1164,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
                     thetas_array_0 = thetas_array[0]
                                        
                 qc, params = MaxCut(num_qubits, restart_ind, edges, rounds, thetas_array_0, parameterized)
+                qc = qc.reverse_bits()                           # to reverse the endianness
                 metrics.store_metric(num_qubits, restart_ind, 'create_time', time.time()-ts)
 
                 # collapse the sub-circuit levels used in this benchmark (for qiskit)
@@ -1192,6 +1196,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=2,
                     # create the circuit for given qubit size, secret string and params, store time metric
                     ts = time.time()
                     qc, params = MaxCut(num_qubits, unique_id, edges, rounds, thetas_array, parameterized)
+                    # qc = qc.reverse_bits()                           # to reverse the endianness
                     metrics.store_metric(num_qubits, unique_id, 'create_time', time.time()-ts)
                     
                     # also store the 'rounds' and 'degree' for each execution

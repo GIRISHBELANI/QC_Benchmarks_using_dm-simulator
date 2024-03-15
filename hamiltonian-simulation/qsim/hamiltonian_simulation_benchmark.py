@@ -35,6 +35,7 @@ _use_XX_YY_ZZ_gates = False
 
 # import precalculated data to compare against
 filename = os.path.join(os.path.dirname(__file__), os.path.pardir, "_common", "precalculated_data.json")
+# filename = os.path.join(os.path.pardir, "_common", "precalculated_data.json")
 with open(filename, 'r') as file:
     data = file.read()
 precalculated_data = json.loads(data)
@@ -190,24 +191,31 @@ def xxyyzz_opt_gate(tau):
 # Compute the quality of the result based on operator expectation for each state
 def analyze_and_print_result(qc, result, num_qubits, type, num_shots):
 
-    counts = result.get_counts(qc)
-    if verbose: print(f"For type {type} measured: {counts}")
+    probs = result.get_counts(qc)            #probabilities
+    if verbose: print(f"For type {type} measured: {probs}")
 
     # we have precalculated the correct distribution that a perfect quantum computer will return
     # it is stored in the json file we import at the top of the code
     correct_dist = precalculated_data[f"Qubits - {num_qubits}"]
     if verbose: print(f"Correct dist: {correct_dist}")
 
-    # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    correct_dist_reversed = {key[::-1]: value for key, value in correct_dist.items()}
+    print(f"correct_dist_reversed ===== {correct_dist_reversed}")
 
-    return counts, fidelity
+    # use our polarization fidelity rescaling
+    fidelity = metrics.polarization_fidelity(probs, correct_dist_reversed)
+    print(f"fidelity ===== {fidelity}")
+
+    # # use our polarization fidelity rescaling
+    # fidelity = metrics.polarization_fidelity(counts, correct_dist)
+
+    return probs, fidelity
 
 
 ################ Benchmark Loop
 
 # Execute program with default parameters
-def run(min_qubits=2, max_qubits=8, max_circuits=3, skip_qubits=1, num_shots=100,
+def run(min_qubits=2, max_qubits=6, max_circuits=3, skip_qubits=1, num_shots=100,
         use_XX_YY_ZZ_gates = False,
         backend_id='dm_simulator', provider_backend=None,
         #hub="ibm-q", group="open", project="main", 
@@ -317,4 +325,8 @@ def run(min_qubits=2, max_qubits=8, max_circuits=3, skip_qubits=1, num_shots=100
 
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__': 
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()

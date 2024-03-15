@@ -91,7 +91,7 @@ def CPhase(angle, exponent):
 def analyze_and_print_result(qc, result, num_counting_qubits, theta, num_shots):
 
     # get results as measured counts
-    counts = result.get_counts(qc)  
+    counts = result.get_counts(qc)            #probabilities
 
     # calculate expected output histogram
     correct_dist = theta_to_bitstring(theta, num_counting_qubits)
@@ -214,7 +214,7 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
             # create the circuit for given qubit size and theta, store time metric
             ts = time.time()
 
-            qc = PhaseEstimation(num_qubits, theta)
+            qc = PhaseEstimation(num_qubits, theta).reverse_bits()                 # to change the endianness
             metrics.store_metric(num_qubits, theta, 'create_time', time.time() - ts)
 
             # collapse the 3 sub-circuit levels used in this benchmark (for qiskit)
@@ -241,4 +241,8 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
 
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__':
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()

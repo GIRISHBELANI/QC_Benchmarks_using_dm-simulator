@@ -55,9 +55,8 @@ def GroversSearch(num_qubits, marked_item, n_iterations):
     qc.barrier()
         
     # measure all qubits
-    # qc.measure(qr, cr)                                        # to get the partial_probability
-    qc.measure(qr, cr, basis='Ensemble', add_param='Z')       # to get the ensemble_probability 
-
+    qc.measure(qr, cr)                                        # to get the partial_probability
+    # qc.measure(qr, cr, basis='Ensemble', add_param='Z')       # to get the ensemble_probability
 
     # save smaller circuit example for display
     global QC_    
@@ -188,7 +187,12 @@ def add_mcx(qc, controls, target):
 # Expected result is always the secret_int, so fidelity calc is simple
 def analyze_and_print_result(qc, result, num_qubits, marked_item, num_shots):
     
-    probs = result.get_counts(qc)
+    probs = result.get_counts(qc)               #probabilities
+    
+    # # setting the threhold value to avoid getting exponential values which leads to nan values
+    # threshold = 3e-3
+    # probs = {key: value if value > threshold else 0.0 for key, value in probs.items()}
+
     if verbose: print(f"For type {marked_item} measured: {probs}")
 
     # we compare counts to analytical correct distribution

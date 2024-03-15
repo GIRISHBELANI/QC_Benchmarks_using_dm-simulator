@@ -140,7 +140,7 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
 ################ Benchmark Loop
 
 # Execute program with default parameters
-def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100,
+def run (min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100,
         backend_id='dm_simulator', method = 1, provider_backend=None,
         #hub="ibm-q", group="open", project="main", 
         exec_options=None,
@@ -213,7 +213,7 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=10
 
             # create the circuit for given qubit size and secret string, store time metric
             ts = time.time()
-            qc = BersteinVazirani(num_qubits, s_int, method)
+            qc = BersteinVazirani(num_qubits, s_int, method).reverse_bits()               #reverse_bits() is to change endianness
             metrics.store_metric(num_qubits, s_int, 'create_time', time.time()-ts)
 
             # collapse the sub-circuit levels used in this benchmark (for qiskit)
@@ -239,5 +239,9 @@ def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=10
                          transform_qubit_group = transform_qubit_group, new_qubit_group = mid_circuit_qubit_group)
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__': 
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()
    

@@ -311,33 +311,33 @@ def analyze_and_print_result(qc, result, num_qubits, order, num_shots, method):
     elif method == 3:
         num_bits = int((num_qubits - 2) / 2)
 
-    # obtain bit_counts from the result object
-    counts = result.get_counts(qc)
+    # obtain bit_probs from the result object
+    probs = result.get_counts(qc)
 
     # Only classical data qubits are important and removing first auxiliary qubit from count
     if method == 2:
-        temp_counts = {}
-        for key, item in counts.items():
-            temp_counts[key[2:]] = item
-        counts = temp_counts
+        temp_probs = {}
+        for key, item in probs.items():
+            temp_probs[key[2:]] = item
+        probs = temp_probs
 
     # generate correct distribution
     correct_dist = expected_shor_dist(num_bits, order, num_shots)
 
     if verbose:
-        print(f"For order value {order}, measured: {counts}")
+        print(f"For order value {order}, measured: {probs}")
         print(f"For order value {order}, correct_dist: {correct_dist}")
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
 
-    return counts, fidelity
+    return probs, fidelity
 
         
 #################### Benchmark Loop        
 
 # Execute program with default parameters
-def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
+def run (min_qubits=3, max_circuits=1, max_qubits=10, num_shots=100, method = 1,
         verbose=verbose, backend_id='dm_simulator', provider_backend=None,
         #hub="ibm-q", group="open", project="main", 
          exec_options=None,
@@ -378,7 +378,7 @@ def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
         num_qubits = int(num_qubits)
         #Must convert number_order from string to array
         order = eval(number_order)[1]
-        counts, fidelity = analyze_and_print_result(qc, result, num_qubits, order, num_shots, method)
+        probs, fidelity = analyze_and_print_result(qc, result, num_qubits, order, num_shots, method)
         metrics.store_metric(num_qubits, number_order, 'fidelity', fidelity)
     
     # Initialize execution module using the execution result handler above and specified backend_id
@@ -424,7 +424,7 @@ def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
 
             # create the circuit for given qubit size and order, store time metric
             ts = time.time()
-            qc = ShorsAlgorithm(number, base, method=method, verbose=verbose)
+            qc = ShorsAlgorithm(number, base, method=method, verbose=verbose).reverse_bits()     # reverse_bits() is applying to handle the change in endianness
             metrics.store_metric(num_qubits, number_order, 'create_time', time.time()-ts)
 
             # collapse the 4 sub-circuit levels used in this benchmark (for qiskit)
@@ -454,4 +454,8 @@ def run (min_qubits=3, max_circuits=1, max_qubits=18, num_shots=100, method = 1,
 
     
 # if main, execute method
-if __name__ == '__main__': run() #max_qubits = 6, max_circuits = 5, num_shots=100)
+if __name__ == '__main__':  
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run() #max_qubits = 6, max_circuits = 5, num_shots=100)

@@ -196,40 +196,21 @@ def inv_qft_gate(input_size):
     return qc
     
 # Define expected distribution calculated from applying the iqft to the prepared secret_int state
-def expected_dist(num_qubits, secret_int, counts):
+def expected_dist(num_qubits, secret_int, probs):
     dist = {}
     s = num_qubits - secret_int
-    for key in counts.keys():
+    for key in probs.keys():
         if key[(num_qubits-secret_int):] == ''.zfill(secret_int):
             dist[key] = 1/(2**s)
     return dist
-
-# to combine the probabilities of ensemble probability
-
-def combine_probabilities(prob, num_qubits):
-    proj_prob = {}
-    input_size = num_qubits-1
-    # Generate binary combinations for n qubits
-    binary_combinations = [bin(i)[2:].zfill(input_size) for i in range(2**input_size)]
-
-    # Combine probabilities and errors for each projection
-    if input_size<2:
-        for i in range(2**(input_size-1)):
-            proj_prob[bin(i)[2:].zfill(input_size-1)] = prob.get(bin(i)[2:].zfill(input_size-1) + '0', 0) + prob.get(bin(i)[2:].zfill(input_size-1) + '1', 0)
-    else:
-        for i in range(2**(input_size-1)):
-            proj_prob[bin(i)[2:].zfill(input_size-1) + '0'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '0' + str(j)] for j in range(2))
-            proj_prob[bin(i)[2:].zfill(input_size-1) + '1'] = sum(prob[bin(i)[2:].zfill(input_size-1) + '1' + str(j)] for j in range(2))
-
-    return proj_prob
 
 ############### Result Data Analysis
 
 # Analyze and print measured results
 def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots, method):
 
-    # obtain counts from the result object
-    counts = result.get_counts(qc)
+    # obtain probs from the result object
+    probs = result.get_counts(qc)
 
     # For method 1, expected result is always the secret_int
     if method==1:
@@ -256,14 +237,14 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots, met
     elif method==3:
 
         # correct_dist is from the expected dist
-        correct_dist = expected_dist(num_qubits, secret_int, counts)
+        correct_dist = expected_dist(num_qubits, secret_int, probs)
             
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
 
-    if verbose: print(f"For secret int {secret_int} measured: {counts} fidelity: {fidelity}")
+    if verbose: print(f"For secret int {secret_int} measured: {probs} fidelity: {fidelity}")
 
-    return counts, fidelity
+    return probs, fidelity
 
 ################ Benchmark Loop
 
@@ -296,7 +277,7 @@ def run (min_qubits = 2, max_qubits = 8, max_circuits = 3, skip_qubits=1, num_sh
      
         # determine fidelity of result set
         num_qubits = int(input_size)
-        counts, fidelity = analyze_and_print_result(qc, result, num_qubits, int(s_int), num_shots, method)
+        probs, fidelity = analyze_and_print_result(qc, result, num_qubits, int(s_int), num_shots, method)
         metrics.store_metric(input_size, s_int, 'fidelity', fidelity)
 
     # Initialize execution module using the execution result handler above and specified backend_id

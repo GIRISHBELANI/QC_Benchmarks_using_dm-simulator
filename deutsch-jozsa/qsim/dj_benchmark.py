@@ -123,7 +123,7 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     # Size of input is one less than available qubits
     input_size = num_qubits - 1
     
-    # obtain counts from the result object for qc.measure(i, i) getting partial_probability
+    # obtain probs from the result object for qc.measure(i, i) getting partial_probability
     probs = result.get_counts(qc)
 
     if verbose: print(f"For type {type} measured: {probs}")
@@ -170,7 +170,7 @@ def run (min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=10
      
         # determine fidelity of result set
         num_qubits = int(num_qubits)
-        counts, fidelity = analyze_and_print_result(qc, result, num_qubits, int(type), num_shots)
+        probs, fidelity = analyze_and_print_result(qc, result, num_qubits, int(type), num_shots)
         metrics.store_metric(num_qubits, type, 'fidelity', fidelity)
 
     # Initialize execution module using the execution result handler above and specified backend_id
@@ -198,7 +198,7 @@ def run (min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=10
             
             # create the circuit for given qubit size and secret string, store time metric
             ts = time.time()
-            qc = DeutschJozsa(num_qubits, type)
+            qc = DeutschJozsa(num_qubits, type).reverse_bits()                             # reverse_bits() is applying to handle the change in endianness
             metrics.store_metric(num_qubits, type, 'create_time', time.time()-ts)
 
             # collapse the sub-circuit levels used in this benchmark (for qiskit)

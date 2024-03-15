@@ -119,7 +119,7 @@ def HiddenShift (num_qubits, secret_int):
 def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     
     # obtain counts from the result object
-    counts = result.get_counts(qc)
+    counts = result.get_counts(qc)                        #probabilities
     if verbose: print(f"For secret int {secret_int} measured: {counts}")
     
     # create the key that is expected to have all the measurements (for this circuit)
@@ -194,7 +194,7 @@ def run (min_qubits=2, max_qubits=6, skip_qubits=2, max_circuits=3, num_shots=10
         
             # create the circuit for given qubit size and secret string, store time metric
             ts = time.time()
-            qc = HiddenShift(num_qubits, s_int)
+            qc = HiddenShift(num_qubits, s_int).reverse_bits()                                        #reverse_bits() is to change the endianness
             metrics.store_metric(num_qubits, s_int, 'create_time', time.time()-ts)
 
             # collapse the sub-circuit levels used in this benchmark (for qiskit)
@@ -220,4 +220,8 @@ def run (min_qubits=2, max_qubits=6, skip_qubits=2, max_circuits=3, num_shots=10
     metrics.plot_metrics(f"Benchmark Results - {benchmark_name} - QSim")
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__': 
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()

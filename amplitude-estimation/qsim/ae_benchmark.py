@@ -12,7 +12,6 @@ from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
 sys.path[1:1] = ["_common", "_common/qsim", "quantum-fourier-transform/qsim"]
 sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-transform/qsim"]
 
-
 import execute as ex
 import metrics as metrics
 
@@ -229,9 +228,9 @@ def a_from_s_int(s_int, num_counting_qubits):
 MAX_QUBITS=8
 
 # Execute program with default parameters
-def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100,
+def run(min_qubits=4, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100,      #for dm-simulator min_qubits=4 because it requires to measure atleast 2 qubits
         num_state_qubits=1, # default, not exposed to users
-        backend_id='qasm_simulator', provider_backend=None,
+        backend_id='dm_simulator', provider_backend=None,
        # hub="ibm-q", group="open", project="main", 
         exec_options=None,
         context=None):
@@ -307,7 +306,7 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
 
             a_ = a_from_s_int(s_int, num_counting_qubits)
 
-            qc = AmplitudeEstimation(num_state_qubits, num_counting_qubits, a_)
+            qc = AmplitudeEstimation(num_state_qubits, num_counting_qubits, a_).reverse_bits()                  #applying reverse_bits() due to change in endianness
             metrics.store_metric(num_qubits, s_int, 'create_time', time.time() - ts)
 
             # collapse the 3 sub-circuit levels used in this benchmark (for qiskit)
@@ -336,4 +335,10 @@ def run(min_qubits=3, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
 
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__':
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+        
+    run()
+
+

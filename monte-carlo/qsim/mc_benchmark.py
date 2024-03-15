@@ -270,7 +270,7 @@ def analyze_and_print_result(qc, result, num_counting_qubits, mu, num_shots, met
         exact = 0.5 # hard coded exact value from uniform dist and square function
 
     # obtain counts from the result object
-    counts = result.get_counts(qc)
+    counts = result.get_counts(qc)       #probabilities
  
     # calculate the expected output histogram
     correct_dist = a_to_bitstring(exact, num_counting_qubits)
@@ -360,7 +360,7 @@ MIN_STATE_QUBITS_M1 = 2
 MAX_QUBITS=10
 
 # Execute program with default parameters
-def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num_shots=100,
+def run(min_qubits=MIN_QUBITS, max_qubits=7, skip_qubits=1, max_circuits=1, num_shots=100,
         epsilon=0.05, degree=2, num_state_qubits=MIN_STATE_QUBITS, method = 2, # default, not exposed to users
         backend_id='dm_simulator', provider_backend=None,
        # hub="ibm-q", group="open", project="main", 
@@ -457,7 +457,7 @@ def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num
             # create the circuit for given qubit size and secret string, store time metric
             ts = time.time()
 
-            qc = MonteCarloSampling(target_dist, f_to_estimate, num_state_qubits, num_counting_qubits, epsilon, degree, method=method)
+            qc = MonteCarloSampling(target_dist, f_to_estimate, num_state_qubits, num_counting_qubits, epsilon, degree, method=method).reverse_bits()        # reverse_bits() is applying to handle the change in endianness
             metrics.store_metric(num_qubits, mu, 'create_time', time.time() - ts)
             
             # collapse the 4 sub-circuit levels used in this benchmark (for qiskit)
@@ -492,4 +492,8 @@ def run(min_qubits=MIN_QUBITS, max_qubits=10, skip_qubits=1, max_circuits=1, num
        
         
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__':  
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()

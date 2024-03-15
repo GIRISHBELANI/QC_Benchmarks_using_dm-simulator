@@ -281,7 +281,13 @@ def analyze_and_print_result(qc, result, num_qubits, references, num_shots):
     pauli_string = total_name.split()[0]
 
     # get results counts
-    counts = result.get_counts(qc)
+    counts = result.get_counts(qc)  #probabilities
+    # counts = {key: round(value, 3) for key, value in counts.items()}  #to avoid exponential probability values which leads to nan value
+    
+    # # setting the threhold value to avoid getting exponential values which leads to nan values
+    # threshold = 3e-3
+    # counts = {key: value if value > threshold else 0.0 for key, value in counts.items()}
+    # print("counts ======= ", counts)
 
     # get the correct measurement
     if (len(total_name.split()) == 2):
@@ -398,7 +404,7 @@ def run(min_qubits=4, max_qubits=8, skip_qubits=1,
             for circuit_id in range(num_circuits):
 
                 # construct circuit 
-                qc_single = VQEEnergy(num_qubits, na, nb, circuit_id, method)               
+                qc_single = VQEEnergy(num_qubits, na, nb, circuit_id, method).reverse_bits()     # reverse_bits() is applying to handle the change in endianness            
                 qc_single.name = qc_single.name + " " + str(circuit_id) 
 
                 # add to list 
@@ -445,4 +451,8 @@ def run(min_qubits=4, max_qubits=8, skip_qubits=1,
     metrics.plot_metrics(f"Benchmark Results - {benchmark_name} ({method}) - QSim")
 
 # if main, execute methods     
-if __name__ == "__main__": run()
+if __name__ == "__main__":  
+
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()
