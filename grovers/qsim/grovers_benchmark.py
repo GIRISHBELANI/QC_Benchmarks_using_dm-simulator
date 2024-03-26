@@ -187,7 +187,16 @@ def add_mcx(qc, controls, target):
 # Expected result is always the secret_int, so fidelity calc is simple
 def analyze_and_print_result(qc, result, num_qubits, marked_item, num_shots):
     
-    probs = result.get_counts(qc)               #probabilities
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability   # get results as measured probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
     
     # # setting the threhold value to avoid getting exponential values which leads to nan values
     # threshold = 3e-3

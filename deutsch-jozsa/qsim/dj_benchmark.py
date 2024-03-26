@@ -123,8 +123,17 @@ def analyze_and_print_result (qc, result, num_qubits, type, num_shots):
     # Size of input is one less than available qubits
     input_size = num_qubits - 1
     
-    # obtain probs from the result object for qc.measure(i, i) getting partial_probability
-    probs = result.get_counts(qc)
+    # obtain probs from the result object
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)
 
     if verbose: print(f"For type {type} measured: {probs}")
     

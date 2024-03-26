@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 ###########################
-# Execute Module - Qiskit
+# Execute Module - QSim
 #
 # This module provides a way to submit a series of circuits to be executed in a batch.
 # When the batch is executed, each circuit is launched as a 'job' to be executed on the target system.
@@ -114,7 +114,7 @@ width_processor = None
 
 # Selection of basis gate set for transpilation
 # Note: selector 1 is a hardware agnostic gate set
-basis_selector = 2           #change the values of basis_selector to get the difference in circuit depth (ref: basis_gates_array[basis_selector])
+basis_selector = 1           #change the values of basis_selector to get the difference in circuit depth (ref: basis_gates_array[basis_selector])
 basis_gates_array = [
     [],
     ['rx', 'ry', 'rz', 'cx'],       # a common basis set, default
@@ -201,7 +201,7 @@ class BenchmarkResult(object):
     def get_counts(self, qc=0):
         counts= self.qiskit_result.quasi_dists[0].binary_probabilities()
         for key in counts.keys():
-            counts[key] = int(counts[key] * self.qiskit_result.metadata[0]['shots'])        
+            counts[key] = int(counts[key] * self.qiskit_result.metadata[0]['shots'])
         return counts
 
 # Special Job object class to hold job information for custom executors
@@ -619,18 +619,6 @@ def execute_circuit(circuit):
             
             #************************************************
             # Initiate execution (with noise if specified and this is a simulator backend)
-
-            # options_noise = {
-            #     'plot': False,
-            #     "thermal_factor": 1.0,
-            #     'show_partition': False,
-            #     "decoherence_factor": 1.0,
-            #     "depolarization_factor": 1.0,
-            #     "bell_depolarization_factor": 1.0,
-            #     "decay_factor": 1.0,
-            #     "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},  # Default values [1.0, 0.0]
-            #     "tsp_model_error": [1.0, 0.0],
-            # }
             
             print("\nOptions with noise:")
             for key, value in options_noise.items():
@@ -673,7 +661,6 @@ def execute_circuit(circuit):
                 
                 # print("\n\n*************Job executing with Noise in simulator*************\n")
                 job = execute(trans_qc,backend,**options_noise)         #for noisy simulator
-                
                 
                 result = job.result()
                     
@@ -1106,28 +1093,16 @@ def job_complete(job):
             result_obj = result.to_dict()
             results_obj = result.to_dict()['results'][0]
             
-            # # get the actual shots and convert to int if it is a string
-            # # DEVNOTE: this summation currently applies only to randomized compiling 
-            # # and may cause problems with other use cases (needs review)
-            # actual_shots = 0
-            # for experiment in result_obj["results"]:
-            #     actual_shots += experiment["shots"]
-
-
             # get the actual shots and convert to int if it is a string
             # DEVNOTE: this summation currently applies only to randomized compiling 
-
-
-            
             # and may cause problems with other use cases (needs review)
             actual_shots = 0
-            # Initialize a variable to store the sum
-            total_prob_sum = 0.0
-            
-            # Iterate through experiments and sum up probabilities
+            total_prob_sum = 0.0 
             
             for experiment in result_obj["results"]:
                 # print("\n\n Experiment =========== ", experiment)
+                actual_shots += experiment["shots"]
+            
                 data = experiment["data"]
         
                 # Check if 'partial_probability' is present in the 'data' dictionary
@@ -1188,6 +1163,7 @@ def job_complete(job):
 
     # If a result handler has been established, invoke it here with result object
     if result != None and result_handler:
+        # print("result ===== ",result)
     
         # invoke a result processor if specified in exec_options
         if result_processor:
@@ -1198,7 +1174,11 @@ def job_complete(job):
         # <result> contains results from multiple circuits
         # DEVNOTE: This will need to change; currently the only case where we have multiple result counts
         # is when using randomly_compile; later, there will be other cases
-        if not use_sessions and type(result.get_counts()) == list:
+        if not use_sessions and result.backend_name == 'dm_simulator' and experiment['data']:
+            partial_probability = experiment['data'].get('partial_probability', None)
+            ensemble_probability = experiment['data'].get('ensemble_probability', None)
+            
+        elif not use_sessions and type(result.get_counts()) == list:
             total_counts = dict()
             for count in result.get_counts():
                 total_counts = dict(Counter(total_counts) + Counter(count))

@@ -156,38 +156,54 @@ def Ctrl_Q(num_state_qubits, A_circ):
 # Analyze and print measured results
 # Expected result is always the secret_int (which encodes alpha), so fidelity calc is simple
 def analyze_and_print_result(qc, result, num_counting_qubits, s_int, num_shots):
-    
-    # get results as measured counts
-    counts = result.get_counts(qc) 
+
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability   # get results as measured probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+
         
     # calculate expected output histogram
     a = a_from_s_int(s_int, num_counting_qubits)
     correct_dist = a_to_bitstring(a, num_counting_qubits)  
+    # print("correct_dist ====== ", correct_dist)
 
     # generate thermal_dist for polarization calculation
     thermal_dist = metrics.uniform_dist(num_counting_qubits)
+    # print("thermal_dist ====== ", thermal_dist)
     
-    # convert counts, expectation, and thermal_dist to app form for visibility
+    # convert probs, expectation, and thermal_dist to app form for visibility
     # app form of correct distribution is measuring amplitude a 100% of the time
-    app_counts = bitstring_to_a(counts, num_counting_qubits)
+    app_counts = bitstring_to_a(probs, num_counting_qubits)
     app_correct_dist = {a: 1.0}
     app_thermal_dist = bitstring_to_a(thermal_dist, num_counting_qubits)
 
+    # print("app_counts ====== ", app_counts)
+    # print("app_correct_dist ====== ", app_correct_dist)
+    # print("app_thermal_dist ====== ", app_thermal_dist)
+
     if verbose:
-        print(f"For amplitude {a}, expected: {correct_dist} measured: {counts}")
+        print(f"For amplitude {a}, expected: {correct_dist} measured: {probs}")
         print(f"   ... For amplitude {a} thermal_dist: {thermal_dist}")
         print(f"For amplitude {a}, app expected: {app_correct_dist} measured: {app_counts}")
         print(f"   ... For amplitude {a} app_thermal_dist: {app_thermal_dist}")
 
     # use polarization fidelity with rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist, thermal_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist, thermal_dist)
     #fidelity = metrics.polarization_fidelity(app_counts, app_correct_dist, app_thermal_dist)
-    
-    hf_fidelity = metrics.hellinger_fidelity_with_expected(counts, correct_dist)
+    # print("fidelity ====== ", fidelity)
+        
+    hf_fidelity = metrics.hellinger_fidelity_with_expected(probs, correct_dist)
 
     if verbose: print(f"  ... fidelity: {fidelity}  hf_fidelity: {hf_fidelity}")
     
-    return counts, fidelity
+    return probs, fidelity
 
 def a_to_bitstring(a, num_counting_qubits):
     m = num_counting_qubits

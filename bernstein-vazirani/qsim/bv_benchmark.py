@@ -122,8 +122,17 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     # size of input is one less than available qubits
     input_size = num_qubits - 1
     
-    # obtain counts from the result object
-    counts = result.get_counts(qc)
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability   # get results as measured probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+        
     if verbose: print(f"For secret int {secret_int} measured: {counts}")
     
     # create the key that is expected to have all the measurements (for this circuit)
@@ -133,9 +142,9 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     correct_dist = {key: 1.0}
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
         
-    return counts, fidelity
+    return probs, fidelity
 
 ################ Benchmark Loop
 

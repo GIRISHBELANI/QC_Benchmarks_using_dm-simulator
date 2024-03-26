@@ -210,7 +210,16 @@ def expected_dist(num_qubits, secret_int, probs):
 def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots, method):
 
     # obtain probs from the result object
-    probs = result.get_counts(qc)
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)     
 
     # For method 1, expected result is always the secret_int
     if method==1:
