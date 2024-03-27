@@ -15,6 +15,7 @@ sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-t
 import execute as ex
 import metrics as metrics
 
+from execute import BenchmarkResult
 from qft_benchmark import inv_qft_gate
 
 # Benchmark Name
@@ -158,16 +159,10 @@ def Ctrl_Q(num_state_qubits, A_circ):
 def analyze_and_print_result(qc, result, num_counting_qubits, s_int, num_shots):
 
     if result.backend_name == 'dm_simulator':
-        try:
-            probs = result.results[0].data.partial_probability   # get results as measured probability
-        except AttributeError:
-            try:
-                probs = result.results[0].data.ensemble_probability
-            except AttributeError:
-                probs = None
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
     else:
         probs = result.get_counts(qc)    # get results as measured counts
-
         
     # calculate expected output histogram
     a = a_from_s_int(s_int, num_counting_qubits)

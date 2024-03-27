@@ -193,16 +193,24 @@ def local_args():
 # from the quasi distributions and shots taken.
 class BenchmarkResult(object):
 
-    def __init__(self, qiskit_result):
+    def __init__(self, qsim_result, num_shots):
         super().__init__()
-        self.qiskit_result = qiskit_result
-        self.metadata = qiskit_result.metadata
+        self.qsim_result = qsim_result
+        self.metadata = getattr(qsim_result, 'metadata', {})  # Initialize metadata to an empty dictionary if not found
 
     def get_counts(self, qc=0):
-        counts= self.qiskit_result.quasi_dists[0].binary_probabilities()
+        counts = self.qsim_result.quasi_dists[0].binary_probabilities()
+        shots = self.metadata[0].get('shots', 1)  # Use get method to safely access 'shots', default to 1 if not found
         for key in counts.keys():
-            counts[key] = int(counts[key] * self.qiskit_result.metadata[0]['shots'])
+            counts[key] = int(counts[key] * shots)
         return counts
+
+    def get_probs(self, num_shots, qc=0):
+        result_data = self.qsim_result.results[0].data
+        probs = getattr(result_data, 'partial_probability', getattr(result_data, 'ensemble_probability', {}))
+        for key in probs.keys():
+            probs[key] = int(probs[key] * num_shots)
+        return probs
 
 # Special Job object class to hold job information for custom executors
 class Job:

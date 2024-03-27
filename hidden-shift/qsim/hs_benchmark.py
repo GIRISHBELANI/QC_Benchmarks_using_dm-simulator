@@ -12,6 +12,7 @@ sys.path[1:1] = [ "_common", "_common/qsim" ]
 sys.path[1:1] = [ "../../_common", "../../_common/qsim" ]
 import execute as ex
 import metrics as metrics
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Hidden Shift"
@@ -118,9 +119,13 @@ def HiddenShift (num_qubits, secret_int):
 # Expected result is always the secret_int, so fidelity calc is simple
 def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     
-    # obtain counts from the result object
-    counts = result.get_counts(qc)                        #probabilities
-    if verbose: print(f"For secret int {secret_int} measured: {counts}")
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+        
+    if verbose: print(f"For secret int {secret_int} measured: {probs}")
     
     # create the key that is expected to have all the measurements (for this circuit)
     key = format(secret_int, f"0{num_qubits}b")
@@ -129,9 +134,9 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     correct_dist = {key: 1.0}
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
         
-    return counts, fidelity
+    return probs, fidelity
 
 ################ Benchmark Loop
 

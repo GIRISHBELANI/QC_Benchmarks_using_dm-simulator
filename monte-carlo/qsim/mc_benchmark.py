@@ -19,6 +19,7 @@ import execute as ex
 import mc_utils as mc_utils
 import metrics as metrics
 from qft_benchmark import inv_qft_gate
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Monte Carlo Sampling"
@@ -269,8 +270,12 @@ def analyze_and_print_result(qc, result, num_counting_qubits, mu, num_shots, met
     elif method == 2:
         exact = 0.5 # hard coded exact value from uniform dist and square function
 
-    # obtain counts from the result object
-    counts = result.get_counts(qc)       #probabilities
+    
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
  
     # calculate the expected output histogram
     correct_dist = a_to_bitstring(exact, num_counting_qubits)
@@ -281,21 +286,21 @@ def analyze_and_print_result(qc, result, num_counting_qubits, mu, num_shots, met
     # convert counts, expectation, and thermal_dist to app form for visibility
     # app form of correct distribution is measuring the input a 100% of the time
     # convert bit_counts into expectation values counts according to Quantum Risk Analysis paper
-    app_counts = expectation_from_bits(counts, num_counting_qubits, num_shots, method)
+    app_counts = expectation_from_bits(probs, num_counting_qubits, num_shots, method)
     app_correct_dist = mc_utils.mc_dist(num_counting_qubits, exact, c_star, method)
     app_thermal_dist = expectation_from_bits(thermal_dist, num_counting_qubits, num_shots, method)
     
     if verbose:
-        print(f"For expected value {exact}, expected: {correct_dist} measured: {counts}")
+        print(f"For expected value {exact}, expected: {correct_dist} measured: {probs}")
         print(f"   ... For expected value {exact} thermal_dist: {thermal_dist}")
         print(f"For expected value {exact}, app expected: {app_correct_dist} measured: {app_counts}")
         print(f"   ... For expected value {exact} app_thermal_dist: {app_thermal_dist}")
         
     # use polarization fidelity with rescaling
-    fidelity = metrics.polarization_fidelity(counts, correct_dist, thermal_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist, thermal_dist)
     #fidelity = metrics.polarization_fidelity(app_counts, app_correct_dist, app_thermal_dist)
     
-    hf_fidelity = metrics.hellinger_fidelity_with_expected(counts, correct_dist)
+    hf_fidelity = metrics.hellinger_fidelity_with_expected(probs, correct_dist)
     
     ###########################################################################
     # NOTE: in this benchmark, we are testing how well the amplitude estimation routine
@@ -304,16 +309,16 @@ def analyze_and_print_result(qc, result, num_counting_qubits, mu, num_shots, met
     #       demonstrate that we do approximate the expectation value accurately.
 
     # the max in the counts is what the algorithm would report as the correct answer
-    a, _ = mc_utils.value_and_max_prob_from_dist(counts)
+    a, _ = mc_utils.value_and_max_prob_from_dist(probs)
 
     if verbose: print(f"For expected value {exact} measured: {a}")
     ###########################################################################
 
-    if verbose: print(f"Solution counts: {counts}")
+    if verbose: print(f"Solution counts: {probs}")
     
     if verbose: print(f"  ... fidelity: {fidelity}  hf_fidelity: {hf_fidelity}")
     
-    return counts, fidelity
+    return probs, fidelity
 
 def a_to_bitstring(a, num_counting_qubits):
     m = num_counting_qubits

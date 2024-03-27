@@ -16,6 +16,7 @@ import metrics as metrics
 from shors_utils import getAngles, getAngle, modinv, generate_base, verify_order
 from qft_benchmark import inv_qft_gate
 from qft_benchmark import qft_gate
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Shor's Order Finding"
@@ -311,8 +312,11 @@ def analyze_and_print_result(qc, result, num_qubits, order, num_shots, method):
     elif method == 3:
         num_bits = int((num_qubits - 2) / 2)
 
-    # obtain bit_probs from the result object
-    probs = result.get_counts(qc)
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
 
     # Only classical data qubits are important and removing first auxiliary qubit from count
     if method == 2:

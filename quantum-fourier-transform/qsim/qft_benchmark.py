@@ -15,6 +15,7 @@ import execute as ex
 import metrics as metrics
 
 from qiskit.circuit.library import QFT
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Quantum Fourier Transform"
@@ -211,15 +212,10 @@ def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots, met
 
     # obtain probs from the result object
     if result.backend_name == 'dm_simulator':
-        try:
-            probs = result.results[0].data.partial_probability
-        except AttributeError:
-            try:
-                probs = result.results[0].data.ensemble_probability
-            except AttributeError:
-                probs = None
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
     else:
-        probs = result.get_counts(qc)     
+        probs = result.get_counts(qc)    # get results as measured counts 
 
     # For method 1, expected result is always the secret_int
     if method==1:

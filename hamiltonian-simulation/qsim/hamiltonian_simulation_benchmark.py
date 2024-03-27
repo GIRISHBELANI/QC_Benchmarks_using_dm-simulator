@@ -15,6 +15,7 @@ sys.path[1:1] = ["_common", "_common/qsim"]
 sys.path[1:1] = ["../../_common", "../../_common/qsim"]
 import execute as ex
 import metrics as metrics
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Hamiltonian Simulation"
@@ -191,7 +192,12 @@ def xxyyzz_opt_gate(tau):
 # Compute the quality of the result based on operator expectation for each state
 def analyze_and_print_result(qc, result, num_qubits, type, num_shots):
 
-    probs = result.get_counts(qc)            #probabilities
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+        
     if verbose: print(f"For type {type} measured: {probs}")
 
     # we have precalculated the correct distribution that a perfect quantum computer will return
@@ -200,11 +206,11 @@ def analyze_and_print_result(qc, result, num_qubits, type, num_shots):
     if verbose: print(f"Correct dist: {correct_dist}")
 
     correct_dist_reversed = {key[::-1]: value for key, value in correct_dist.items()}
-    print(f"correct_dist_reversed ===== {correct_dist_reversed}")
+    # print(f"correct_dist_reversed ===== {correct_dist_reversed}")
 
     # use our polarization fidelity rescaling
     fidelity = metrics.polarization_fidelity(probs, correct_dist_reversed)
-    print(f"fidelity ===== {fidelity}")
+    # print(f"fidelity ===== {fidelity}")
 
     # # use our polarization fidelity rescaling
     # fidelity = metrics.polarization_fidelity(counts, correct_dist)

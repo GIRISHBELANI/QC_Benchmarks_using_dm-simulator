@@ -16,6 +16,7 @@ sys.path[1:1] = ["_common", "_common/qsim"]
 sys.path[1:1] = ["../../_common", "../../_common/qsim"]
 import execute as ex
 import metrics as metrics
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "VQE Simulation"
@@ -280,14 +281,18 @@ def analyze_and_print_result(qc, result, num_qubits, references, num_shots):
     # pauli string
     pauli_string = total_name.split()[0]
 
-    # get results counts
-    counts = result.get_counts(qc)  #probabilities
-    # counts = {key: round(value, 3) for key, value in counts.items()}  #to avoid exponential probability values which leads to nan value
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+        
+    # probs = {key: round(value, 3) for key, value in probs.items()}  #to avoid exponential probability values which leads to nan value
     
     # # setting the threhold value to avoid getting exponential values which leads to nan values
     # threshold = 3e-3
-    # counts = {key: value if value > threshold else 0.0 for key, value in counts.items()}
-    # print("counts ======= ", counts)
+    # probs = {key: value if value > threshold else 0.0 for key, value in probs.items()}
+    # print("probability ======= ", probs)
 
     # get the correct measurement
     if (len(total_name.split()) == 2):
@@ -297,7 +302,7 @@ def analyze_and_print_result(qc, result, num_qubits, references, num_shots):
         correct_dist = references[f"Qubits - {num_qubits} - {circuit_id}"]
 
     # compute fidelity
-    fidelity = metrics.polarization_fidelity(counts, correct_dist)
+    fidelity = metrics.polarization_fidelity(probs, correct_dist)
 
     # modify fidelity based on the coefficient
     if (len(total_name.split()) == 2):

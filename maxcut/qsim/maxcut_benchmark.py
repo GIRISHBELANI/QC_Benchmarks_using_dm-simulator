@@ -24,6 +24,7 @@ sys.path[1:1] = [ "../../_common", "../../_common/qsim", "../../maxcut/_common/"
 import common
 import execute as ex
 import metrics as metrics
+from execute import BenchmarkResult
 
 # DEVNOTE: this logging feature should be moved to common level
 logger = logging.getLogger(__name__)
@@ -293,7 +294,6 @@ def get_expectation(num_qubits, degree, num_shots):
     else:
         return None
     
-    
 ############### Result Data Analysis
 
 expected_dist = {}
@@ -301,28 +301,35 @@ expected_dist = {}
 # Compare the measurement results obtained with the expected measurements to determine fidelity
 def analyze_and_print_result (qc, result, num_qubits, secret_int, num_shots):
     global expected_dist
-    
-    # obtain counts from the result object
-    counts = result.get_counts(qc)          #probabilities
-    # print("\ncounts ===== ", counts)
+    # print(result)
+    if result.backend_name == 'dm_simulator':
+        try:
+            probs = result.results[0].data.partial_probability   # get results as measured probability
+        except AttributeError:
+            try:
+                probs = result.results[0].data.ensemble_probability
+            except AttributeError:
+                probs = None
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
     
     # retrieve pre-computed expectation values for the circuit that just completed
     expected_dist = get_expectation(num_qubits, secret_int, num_shots)
     
     # if the expectation is not being calculated (only need if we want to compute fidelity)
-    # assume that the expectation is the same as measured counts, yielding fidelity = 1
+    # assume that the expectation is the same as measured probability, yielding fidelity = 1
     if expected_dist == None:
-        expected_dist = counts
+        expected_dist = probs
     # print("\nexpected_dist ====== ", expected_dist)
 
-    if verbose: print(f"For width {num_qubits} problem {secret_int}\n  measured: {counts}\n  expected: {expected_dist}")
+    if verbose: print(f"For width {num_qubits} problem {secret_int}\n  measured: {probs}\n  expected: {expected_dist}")
 
     # use our polarization fidelity rescaling
-    fidelity = metrics.polarization_fidelity(counts, expected_dist)
+    fidelity = metrics.polarization_fidelity(probs, expected_dist)
 
     if verbose: print(f"For secret int {secret_int} fidelity: {fidelity}")
     
-    return counts, fidelity
+    return probs, fidelity
 
 
 #%% Computation of various metrics, such as approximation ratio, etc.
@@ -340,8 +347,8 @@ def compute_cutsizes(results, nodes, edges):
     sizes : ndarray of ints
         cut sizes (i.e. number of edges crossing the cut)
     """
-    cuts = list(results.get_counts().keys())
-    counts = list(results.get_counts().values())
+    cuts = list(results.results[0].data.partial_probability.keys())
+    counts = list(results.results[0].data.partial_probability.values())
     sizes = [common.eval_cut(nodes, edges, cut, reverseStep) for cut in cuts]
     return cuts, counts, sizes
 
@@ -1388,6 +1395,10 @@ def plot_results_from_data(num_shots=100, rounds=1, degree=3, max_iter=30, max_c
     metrics.plot_angles_polar(suptitle = suptitle, options = options, suffix = suffix)
 
 # if main, execute method
-if __name__ == '__main__': run()
+if __name__ == '__main__': 
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()
 
 # %%
