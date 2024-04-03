@@ -28,7 +28,7 @@ import ae_benchmark
 import bv_benchmark
 import dj_benchmark
 import grovers_benchmark
-# import hamiltonian_simulation_benchmark
+import hamiltonian_simulation_benchmark
 import hs_benchmark
 import maxcut_benchmark
 import mc_benchmark
@@ -224,7 +224,7 @@ if __name__ == "__main__":
         grovers_benchmark.run(**universal_args)
 
     elif algorithm == "hamiltonian-simulation":
-        universal_args["use_XX_YY_ZZ"] = additional_args["use_XX_YY_ZZ"]
+        # universal_args["use_XX_YY_ZZ"] = additional_args["use_XX_YY_ZZ"]
         hamiltonian_simulation_benchmark.run(**universal_args)
 
     elif algorithm == "hidden-shift":
