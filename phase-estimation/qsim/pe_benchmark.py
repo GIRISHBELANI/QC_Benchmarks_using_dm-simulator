@@ -13,6 +13,7 @@ sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-t
 import execute as ex
 import metrics as metrics
 from qft_benchmark import inv_qft_gate
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "Phase Estimation"
@@ -90,9 +91,14 @@ def CPhase(angle, exponent):
 # Expected result is always theta, so fidelity calc is simple
 def analyze_and_print_result(qc, result, num_counting_qubits, theta, num_shots):
 
-    # get results as measured counts
-    counts = result.get_counts(qc)            #probabilities
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
 
+    counts = probs
+    
     # calculate expected output histogram
     correct_dist = theta_to_bitstring(theta, num_counting_qubits)
     
