@@ -22,21 +22,40 @@ https://rustup.rs/
 
 which will provide instructions for how to install rust on your platform. Besides rustup there are other [installation methods](https://forge.rust-lang.org/infra/other-installation-methods.html) available too.
 
+OR
+
+```bash
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
+python -m pip install setuptools-rust
+```
+
 Once the Rust compiler is installed, you are ready to install Qiskit Aakash.
 1. Clone the qiskit-aakash repo and enter it.
 ```bash
-git clone https://github.com/indian-institute-of-science-qc/qiskit-aakash.git
+git clone -b terra_upgrade https://github.com/indian-institute-of-science-qc/qiskit-aakash.git
 cd qiskit-aakash
 ```
-2. If you want to run tests or linting checks, install the developer requirements.
+2. Create a separate branch upto a stable commit
+```bash
+git checkout -b branchName bea98fbff86c234c0b1990add17493a1e86917cb
+```
+
+Note: If you're getting an error related to ipython_genutils, use below commands 
+```bash
+python -m pip install ipython-genutils
+conda install -c conda-forge ipython_genutils
+pip install --upgrade pip
+```
+
+3. If you want to run tests or linting checks, install the developer requirements.
 ```bash
 pip install -r requirements-dev.txt
 ```
-3. Install qiskit-aakash.
+4. Install qiskit-aakash.
 ```bash
 pip install .
 ```
-If you want to install in editable mode, use 
+If you want to install in editable mode (recommended), use 
 ```bash
 pip install -e .
 ```
@@ -48,6 +67,30 @@ pip install -e .
 
 The code for the new back-end `dm_simulator` can be found in [`dm_simulator.py`](qiskit/providers/basicaer/dm_simulator.py).
 This back-end also uses some functionalities from [`basicaertools.py`](qiskit/providers/basicaer/basicaertools.py).
+
+## Executing Commands for QSim
+
+### Using benchmark_runner.py file 
+(chnage the algorithm names according to mentioned in benchmark_runner.py file, change other parameters according to your need)
+```bash
+python3 _common/qsim/benchmark_runner.py --algorithm shors --min_qubit 4 --max_qubit 10 --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
+```
+
+### To run individual benchmark files without introducing any noise (example command for deutsch-jozsa)
+```bash
+python3 deutsch-jozsa/qsim/dj_benchmark.py
+```
+
+### To run individual benchmark file with introducing noise parameters 
+(adjust noise parameter according to your experiment, below command introduced thermal_factor and depolarization_factor noises just for example)
+```bash
+python3 deutsch-jozsa/qsim/dj_benchmark.py --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
+```
+
+Since by default plot and show_partition parameters are set to False, if you want to set as True, run below command:
+```bash
+python3 deutsch-jozsa/qsim/dj_benchmark.py --plot --show_partition --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
+```
 
 ## Example
 Once installed, files can be changed and run in python (for instructions to use the qiskit-terra part of the software, please visit [here](https://github.com/Qiskit/qiskit-terra)). For example,
