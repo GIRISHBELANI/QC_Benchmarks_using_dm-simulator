@@ -228,3 +228,6 @@ A Quantum Fourier Transform is subsequently performed and returns a period that 
 ### The benchmark does not currently report a fidelity or quality metric.
 
 --->
+
+
+### Note: For dm-simulator, Shor(2) is not giving result because of instruction "bfunc" is not supported in terra_upgrade branch (if you print the instruction from basicaertools.py file, you can see the difference in instruction output of Shor(1) and Shor(2)) 
