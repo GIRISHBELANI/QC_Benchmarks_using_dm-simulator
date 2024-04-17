@@ -258,7 +258,7 @@ def run(min_qubits=4, max_qubits=8, skip_qubits=1, max_circuits=3, num_shots=100
     if max_qubits < num_state_qubits + 2:
         print(f"ERROR: AE Benchmark needs at least {num_state_qubits + 2} qubits to run")
         return
-    min_qubits = max(max(3, min_qubits), num_state_qubits + 2)
+    min_qubits = max(max(4, min_qubits), num_state_qubits + 2)                                 # min_qubit=4 for AE using dm-simulator
     skip_qubits = max(1, skip_qubits)
     #print(f"min, max, state = {min_qubits} {max_qubits} {num_state_qubits}")
 
