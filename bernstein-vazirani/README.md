@@ -155,6 +155,19 @@ two qubit circuit used with mid circuit measurements to represent the quantum ci
    <img align=center src="../_doc/images/bernstein-vazirani/bv_fidelity_width.png"  width="500" />
    </p>
 
+## Summary of checked parameters
+
+|Parameter|Status|Remarks|
+|---------|------|-------|
+|min_qubits|3 qubits||
+|max_qubits|14 qubits| Got error "Kernel-Died" for **max_qubits>14**|
+|Max_circuits|10| can be changed accordingly|
+|Noise Parameters **(defined in execute.py)**|Without Noise|options_noisy = { }|
+||With noise |options_noisy = {"decoherence_factor": 0.9,"depolarization_factor": 0.9,"bell_depolarization_factor": 0.9,"decay_factor": 0.9}|
+|Basis Selector|All possible Basis are checked||
+|Methods| Method-1| **partial_probability** gives the correct result of measurements|
+|| Method-2| **partial_probability** fails here as there are no implementations for measurement of **<=2**. **Method-2** performs multiple measurements  and stores them to same classical bit repeatedly. So **ensemble_probability** is used (but fidelity values *without noise* $\neq$ 1).|
+
 ## References
 
 [1] Ethan Bernstein and Umesh Vazirani. (1997).

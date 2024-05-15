@@ -122,6 +122,18 @@ The balanced oracle applies CNOTs to the ancilla qubit controlled by all the dat
 <img align=center src="../_doc/images/deutsch-jozsa/balanced_oracle.png"  width="600" />
 </p>
 
+## Summary of checked parameters
+
+|Parameter|Status|Remarks|
+|---------|------|-------|
+|min_qubits|3 qubits||
+|max_qubits|14 qubits| Got error "Kernel-Died" for **max_qubits>14**|
+|Max_circuits|10| can be changed accordingly|
+|Noise Parameters **(defined in execute.py)**|Without Noise|options_noisy = { }|
+||With noise |options_noisy = {"decoherence_factor": 0.9,"depolarization_factor": 0.9,"bell_depolarization_factor": 0.9,"decay_factor": 0.9}|
+|Basis Selector|All possible Basis are checked||
+
+
 ## References
 
 [1] David Deutsch and Richard Jozsa. (1992).
