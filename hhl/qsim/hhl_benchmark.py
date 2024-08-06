@@ -622,7 +622,7 @@ def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
     
     global saved_result
     saved_result = result
-    print(result)
+    # print(result)
     if result.backend_name == 'dm_simulator':
         benchmark_result = BenchmarkResult(result, num_shots)
         probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
