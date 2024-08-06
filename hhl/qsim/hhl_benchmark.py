@@ -26,6 +26,7 @@ sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../quantum-fourier-t
 
 import execute as ex
 import metrics as metrics
+from execute import BenchmarkResult
 
 # Benchmark Name
 benchmark_name = "HHL"
@@ -481,7 +482,7 @@ def make_circuit(A, b, num_clock_qubits):
     
     # and measure ancilla
     
-    qc.measure(qr_a[0], cr_a[0], basis = "Ensemble", add_param = "Z")
+    qc.measure(qr_a[0], cr_a[0])
     qc.reset(qr_a[0])
 
     qc.barrier()
@@ -525,7 +526,7 @@ def make_circuit(A, b, num_clock_qubits):
     ''' Perform final measurements '''
     
     # measure ancilla and main register
-    qc.measure(qr[0:], cr[0:], basis = "Ensemble", add_param = "Z")
+    qc.measure(qr[0:], cr[0:])
 
     if QC_ == None:
         QC_ = qc
@@ -561,41 +562,82 @@ def true_distr(A, b=0):
     
     return distr
 
- # post-select counts where ancilla was measured as |1>
+#  # post-select counts where ancilla was measured as |1>
+# def postselect(outcomes, return_probs=True):
+    
+#     mar_out = {}
+#     for b_str in outcomes:
+#         if b_str[0] == '1':
+#             counts = outcomes[b_str]
+#             mar_out[b_str[2:]] = counts
+#             # print(f"mar_out[b_str[2:]] ===== {mar_out[b_str[2:]]}")
+
+#     print(f"mar_out ================================================== {mar_out}")
+        
+#     # compute postselection rate
+#     ps_shots = sum(mar_out.values())
+#     print(f"ps_shots ===== {ps_shots}")
+    
+#     shots = sum(outcomes.values())
+#     print(f"shots ===== {shots}")
+
+#     rate = ps_shots/shots
+    
+#     # convert to probability distribution
+#     if return_probs == True:
+#         mar_out = {b_str:round(mar_out[b_str]/ps_shots, 4) for b_str in mar_out}  
+    
+#     return mar_out, rate
+
+
 def postselect(outcomes, return_probs=True):
-    
     mar_out = {}
+    
+    # Filter outcomes based on the condition
     for b_str in outcomes:
-        if b_str[0] == '1':
+        if b_str and b_str[0] == '1':  # Check if b_str is not empty and starts with '1'
             counts = outcomes[b_str]
-            mar_out[b_str[2:]] = counts
-            
-    # compute postselection rate
+            mar_out[b_str[:]] = counts
+
+    # print(f"mar_out ================================================== {mar_out}")
+        
+    # Compute postselection rate
     ps_shots = sum(mar_out.values())
+    # print(f"ps_shots ================================================== {ps_shots}")
+    
     shots = sum(outcomes.values())
-    rate = ps_shots/shots
+    # print(f"shots ================================================== {shots}")
+
+    rate = ps_shots / shots
     
-    # convert to probability distribution
-    if return_probs == True:
-        mar_out = {b_str:round(mar_out[b_str]/ps_shots, 4) for b_str in mar_out}  
-    
+    # Convert to probability distribution
+    if return_probs:
+        mar_out = {b_str: round(mar_out[b_str] / ps_shots, 4) for b_str in mar_out if ps_shots != 0}  # Avoid division by zero
+
     return mar_out, rate
+    
     
 # Analyze the quality of the result obtained from executing circuit qc 
 def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
     
     global saved_result
     saved_result = result
-    
-    # obtain counts from the result object
-    counts = result.get_counts(qc)           #probabilities
-
+    print(result)
+    if result.backend_name == 'dm_simulator':
+        benchmark_result = BenchmarkResult(result, num_shots)
+        probs = benchmark_result.get_probs(num_shots)        # get results as measured probability
+    else:
+        probs = result.get_counts(qc)    # get results as measured counts
+        
     if verbose:
-        print(f"... for circuit = {num_qubits} {s_int}, counts = {counts}")
-    
+        print(f"... for circuit = {num_qubits} {s_int}, probability = {probs}")
+
+    # print(f"probs ================================================== {probs}")
+
     # post-select counts where ancilla was measured as |1>
-    post_counts, rate = postselect(counts)
-    num_input_qubits = len(list(post_counts.keys())[0])
+    post_probs, rate = postselect(probs)
+    # print(f"post_probs ================================================== {post_probs}")
+    num_input_qubits = len(list(post_probs.keys())[0])
     
     if verbose: 
         print(f'... ratio of counts with ancilla measured |1> : {round(rate, 4)}')
@@ -628,17 +670,27 @@ def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
     A = shs.generate_sparse_H(num_input_qubits, off_diag_index,
                               diag_el=diag_el, off_diag_el=off_diag_el)
     ideal_distr = true_distr(A, b)
-      
+    # print(f"ideal_distr ================================================== {ideal_distr}")
+
     # # compute total variation distance
-    # tvd = TVD(ideal_distr, post_counts)
+    # tvd = TVD(ideal_distr, post_probs)
     
     # # use TVD as infidelity
     # fidelity = 1 - tvd
-    # #fidelity = metrics.polarization_fidelity(post_counts, ideal_distr)
+    # #fidelity = metrics.polarization_fidelity(post_probs, ideal_distr)
 
-    fidelity = metrics.polarization_fidelity(post_counts, ideal_distr)
+    # fidelity = metrics.polarization_fidelity(post_probs, ideal_distr)
+
+    def reverse_dict_keys(d):
+        return {k[::-1]: v for k, v in d.items()}
+
+    reversed_ideal_distr = reverse_dict_keys(ideal_distr)
+    # print("Reversed ideal distribution ================================================== ", reversed_ideal_distr)
+    fidelity = metrics.polarization_fidelity(post_probs, reversed_ideal_distr)
     
-    return post_counts, fidelity
+    # print(f"fidelity ================================================== {fidelity}")
+    
+    return post_probs, fidelity
 
 
 ################ Benchmark Loop
@@ -649,7 +701,7 @@ def analyze_and_print_result (qc, result, num_qubits, s_int, num_shots):
 # assumption that num_input_qubits ~= num_clock_qubits and num_input_qubits < num_clock_qubits:
 #      num_qubits = 2 * num_input_qubits + num_clock_qubits + 1 (the ancilla)
 
-def run (min_qubits=3, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100,
+def run (min_qubits=8, max_qubits=10, skip_qubits=1, max_circuits=3, num_shots=100,    # min_qubits=8 because partial_probability not getting below 8 qubits
         method = 1, use_best_widths=True,
         backend_id='dm_simulator', provider_backend=None,
         #hub="ibm-q", group="open", project="main", 
@@ -715,7 +767,7 @@ def run2 (min_input_qubits=1, max_input_qubits=3, skip_qubits=1,
         exec_options=None,
         context=None):  
     
-    print(f"{benchmark_name} Benchmark Program - Qiskit")
+    print(f"{benchmark_name} Benchmark Program - QSim")
 
     # ensure valid input an clock qubit widths
     min_input_qubits = min(max(1, min_input_qubits), max_input_qubits)
@@ -846,5 +898,10 @@ def run2 (min_input_qubits=1, max_input_qubits=3, skip_qubits=1,
                          transform_qubit_group = transform_qubit_group, new_qubit_group = mid_circuit_qubit_group)
 
 # if main, execute method
-if __name__ == '__main__': run()
+# if __name__ == '__main__': run()
+if __name__ == '__main__': 
+    
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()
    

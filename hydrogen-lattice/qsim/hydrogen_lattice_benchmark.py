@@ -1,5 +1,5 @@
 """
-Hydogen Lattice Benchmark Program - Qiskit
+Hydogen Lattice Benchmark Program - QSim
 """
 
 import datetime
@@ -15,15 +15,15 @@ from typing import Optional
 import numpy as np
 from scipy.optimize import minimize
 
-from qiskit import Aer, QuantumCircuit, execute
+from qiskit import BasicAer, QuantumCircuit, execute
 from qiskit.circuit import ParameterVector
 from qiskit.exceptions import QiskitError
 from qiskit.quantum_info import SparsePauliOp
 from qiskit.result import sampled_expectation_value
 
 
-sys.path[1:1] = ["_common", "_common/qiskit", "hydrogen-lattice/_common"]
-sys.path[1:1] = ["../../_common", "../../_common/qiskit", "../../hydrogen-lattice/_common/"]
+sys.path[1:1] = ["_common", "_common/qsim", "hydrogen-lattice/_common"]
+sys.path[1:1] = ["../../_common", "../../_common/qsim", "../../hydrogen-lattice/_common/"]
 
 # benchmark-specific imports
 import common
@@ -533,14 +533,14 @@ expectations = {}
 def compute_expectation(qc, num_qubits, secret_int, backend_id="statevector_simulator", params=None):
     # ts = time.time()
 
-    # to execute on Aer state vector simulator, need to remove measurements
+    # to execute on BasicAer state vector simulator, need to remove measurements
     qc = qc.remove_final_measurements(inplace=False)
 
     if params is not None:
         qc = qc.bind_parameters(params)
 
     # execute statevector simulation
-    sv_backend = Aer.get_backend(backend_id)
+    sv_backend = BasicAer.get_backend(backend_id)
     sv_result = execute(qc, sv_backend, params=params).result()
 
     # get the probability distribution
@@ -1811,7 +1811,7 @@ def submit_to_estimator(qc=None, num_qubits=1, unique_id=-1, parameterized=False
     if backend_id.lower() == "statevector_simulator":
         estimator = Estimator()  # statevector doesn't work w/ vanilla BackendEstimator
     else:
-        estimator = BackendEstimator(backend=Aer.get_backend(backend_id))  # FIXME: won't work for vendor QPUs
+        estimator = BackendEstimator(backend = BaiscAer.get_backend(backend_id))  # FIXME: won't work for vendor QPUs
         #estimator = BackendEstimator(backend=provider_backend)
     
     ts_start = time.time()
@@ -1838,9 +1838,11 @@ def submit_to_estimator(qc=None, num_qubits=1, unique_id=-1, parameterized=False
 # MAIN
 
 # # if main, execute method
-if __name__ == "__main__":
-    run()
+if __name__ == '__main__': 
 
+    ex.local_args()    # calling local_args() needed while taking noise parameters through command line arguments (for individual benchmarks)
+    
+    run()
 # # %%
 
 # run()

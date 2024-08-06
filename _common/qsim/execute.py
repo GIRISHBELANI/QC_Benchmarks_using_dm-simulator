@@ -178,7 +178,7 @@ def local_args():
     options_noise['tsp_model_error'] = args.tsp_model_error
     
     # Print the updated options_noise dictionary
-    print("Updated options_noise dictionary:", options_noise)
+    # print("Updated options_noise dictionary:", options_noise)
 
     # python3 benchmark_filename.py --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
     # python3 benchmark_filename.py --plot --show_partition --thermal_factor 0.9 --decoherence_factor 1.0 --depolarization_factor 0.9 --rotation_error 1.0 0.0 1.0 0.0 1.0 0.0 --tsp_model_error 1.0 0.0
@@ -628,9 +628,9 @@ def execute_circuit(circuit):
             #************************************************
             # Initiate execution (with noise if specified and this is a simulator backend)
             
-            print("\nOptions with noise:")
-            for key, value in options_noise.items():
-                print(f"{key}: {value}")
+            # print("\nOptions with noise:")
+            # for key, value in options_noise.items():
+            #     print(f"{key}: {value}")
             
             if options_noise is not None and not use_sessions and backend_name.endswith("dm_simulator"):
                 logger.info(f"Performing noisy simulation, shots = {shots}")
