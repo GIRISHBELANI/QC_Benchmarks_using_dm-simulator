@@ -32,8 +32,8 @@
 import os
 import json
 import time
-from time import gmtime, strftime
-from datetime import datetime
+from time import gmtime, strftime, localtime
+from datetime import datetime, timedelta
 import traceback
 import matplotlib.cm as cm
 import copy
@@ -125,10 +125,21 @@ depth_base = 2
 # suppress plotting for low fidelity at this level
 suppress_low_fidelity_level = 0.015
 
-# Get the current time formatted
+# # Get the current time formatted
+# def get_timestr():
+#     #timestr = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime())
+#     timestr = strftime("%b %d, %Y %H:%M:%S UTC", gmtime())
+#     return timestr
+
 def get_timestr():
-    #timestr = strftime("%Y-%m-%d %H:%M:%S UTC", gmtime())
-    timestr = strftime("%b %d, %Y %H:%M:%S UTC", gmtime())
+    # Get the current UTC time
+    utc_now = datetime.utcnow()
+    
+    # Convert UTC time to IST
+    ist_now = utc_now + timedelta(hours=5, minutes=30)
+    
+    # Format the IST time string
+    timestr = ist_now.strftime("%b %d, %Y %H:%M:%S IST")
     return timestr
 
 
