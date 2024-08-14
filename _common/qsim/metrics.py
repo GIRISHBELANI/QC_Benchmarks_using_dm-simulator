@@ -3797,6 +3797,7 @@ def test_metrics ():
 # import json
 import pandas as pd
 from openpyxl.utils.dataframe import dataframe_to_rows
+from openpyxl.styles import Alignment
 
 def json_to_excel(benchmark_folder, api, backend_id):
     # Replace slashes in the backend_id
@@ -3845,22 +3846,33 @@ def json_to_excel(benchmark_folder, api, backend_id):
             row = {'groups': groups[i]}
             for key, value in group_metrics.items():
                 if isinstance(value, list):
-                    if isinstance(value[0], list):  # Check if it's a nested list
-                        row[key] = value[i][0] if i < len(value) else None
-                    else:
-                        row[key] = value[i] if i < len(value) else None
+                    row[key] = value[i] if i < len(value) else None
                 else:
                     row[key] = value
             rows.append(row)
 
-        df = pd.DataFrame(rows)
-
+        df = pd.DataFrame(rows) 
+        
+        df = df.drop("job_ids", axis=1)
+        
         # Access the writer's workbook to create a new sheet
         workbook = writer.book
         sheet = workbook.create_sheet(title=app)
 
         # Write the app name as a heading
-        sheet.append([app])
+        title_row = [app]
+        sheet.append(title_row + [''] * (len(df.columns) - 1))
+    
+        # Merge cells for the title row
+        title_cell_range = f'A{sheet.max_row}:U{sheet.max_row}'
+        sheet.merge_cells(title_cell_range)
+        
+        # Center align all cells in the worksheet
+        for row in sheet.iter_rows():
+            for cell in row:
+                cell.alignment = Alignment(horizontal='center')
+            
+        # sheet.append([app])
         sheet.append([])  # Add an empty row
 
         # Write the DataFrame to the worksheet
