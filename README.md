@@ -5,7 +5,7 @@ The details about the implementation of the density matrix simulator is given in
 > **Optional :** We advise you to use a virtual environment to install the files. Virtual environment can be created using `conda`.  
 >
 > ```bash
-> conda create -y -n QiskitAakash python=3.8
+> conda create -y -n QiskitAakash python=3.8 pandas openpyxl
 > ```
 > See [this](https://docs.conda.io/projects/conda/en/latest/user-guide/install/linux.html) for instruction to install `conda` into your system. You may also give a different name to the environment. In that case, replace QiskitAakash with the name of your choice in the above and below instructions
 >
