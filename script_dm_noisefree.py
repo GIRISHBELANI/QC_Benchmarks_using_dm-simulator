@@ -9,6 +9,21 @@ import metrics as metrics
 metrics.show_plot_images = False
 metrics.data_suffix = "_noisefree"
 
+import os
+
+def toggle_cuda_visible_devices():
+        # Get the current value, default to '0' if it's not set
+        current_value = os.environ.get("CUDA_VISIBLE_DEVICES", "0")
+        
+        # Toggle between '0' and '1'
+        new_value = "1" if current_value == "0" else "0"
+        os.environ["CUDA_VISIBLE_DEVICES"] = new_value
+        
+        # Print the updated value for confirmation
+        print(f"CUDA_VISIBLE_DEVICES set to {new_value}")
+
+
+
 min_qubits=6
 max_qubits=15
 skip_qubits=1
@@ -28,6 +43,7 @@ dj_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -42,6 +58,7 @@ bv_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -55,6 +72,7 @@ hs_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -71,6 +89,7 @@ qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 # QFT Method-2
 
@@ -83,6 +102,7 @@ qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip
                 method=2,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -96,6 +116,7 @@ pe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -109,6 +130,7 @@ ae_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -122,6 +144,7 @@ hamiltonian_simulation_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubit
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -135,6 +158,7 @@ grovers_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -148,6 +172,7 @@ mc_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -163,6 +188,7 @@ vqe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -178,6 +204,7 @@ shors_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, max_circuits=1
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 
@@ -195,6 +222,7 @@ hhl_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip
                 method=1, use_best_widths=True,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+toggle_cuda_visible_devices()
 
 
 # -----------------------------------------------MaxCut-QAOA-Algorithm---------------------------------------------
@@ -210,6 +238,7 @@ maxcut_benchmark.run(
     backend_id=backend_id, provider_backend=provider_backend,
     exec_options=exec_options
 )
+toggle_cuda_visible_devices()
 
 # ---------------------------------------------Creation of xls file from __data/*****.json file---------------------------------------------
 
