@@ -10,7 +10,6 @@ metrics.show_plot_images = False
 metrics.data_suffix = "_noisy"
 
 def toggle_cuda_visible_devices():
-    while True:
         # Get the current value, default to '0' if it's not set
         current_value = os.environ.get("CUDA_VISIBLE_DEVICES", "0")
         
