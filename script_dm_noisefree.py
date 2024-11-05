@@ -1,6 +1,7 @@
 # # Importing execute and metrics modules
 
 import sys
+import cupy as cp
 sys.path[1:1] = [ "../../_common", "../../_common/qsim" ]
 sys.path[1:1] = [ "_common", "_common/qsim" ]
 import execute as ex
@@ -9,18 +10,7 @@ import metrics as metrics
 metrics.show_plot_images = False
 metrics.data_suffix = "_noisefree"
 
-import os
 
-def toggle_cuda_visible_devices():
-        # Get the current value, default to '0' if it's not set
-        current_value = os.environ.get("CUDA_VISIBLE_DEVICES", "0")
-        
-        # Toggle between '0' and '1'
-        new_value = "1" if current_value == "0" else "0"
-        os.environ["CUDA_VISIBLE_DEVICES"] = new_value
-        
-        # Print the updated value for confirmation
-        print(f"CUDA_VISIBLE_DEVICES set to {new_value}")
 
 
 
@@ -39,11 +29,13 @@ max_qubits=15
 
 sys.path.insert(1, "deutsch-jozsa/qsim")
 import dj_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 dj_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -53,12 +45,14 @@ max_qubits=15
 
 sys.path.insert(1, "bernstein-vazirani/qsim")
 import bv_benchmark
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 bv_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -68,11 +62,13 @@ max_qubits=15
 
 sys.path.insert(1, "hidden-shift/qsim")
 import hs_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 hs_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -84,12 +80,14 @@ max_qubits=15
 
 sys.path.insert(1, "quantum-fourier-transform/qsim")
 import qft_benchmark
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 # QFT Method-2
 
@@ -97,12 +95,14 @@ max_qubits=15
 
 sys.path.insert(1, "quantum-fourier-transform/qsim")
 import qft_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=2,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -112,11 +112,13 @@ max_qubits=15
 
 sys.path.insert(1, "phase-estimation/qsim")
 import pe_benchmark
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 pe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -126,11 +128,13 @@ max_qubits=13
 
 sys.path.insert(1, "amplitude-estimation/qsim")
 import ae_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 ae_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -140,11 +144,13 @@ max_qubits=15
 
 sys.path.insert(1, "hamiltonian-simulation/qsim")
 import hamiltonian_simulation_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 hamiltonian_simulation_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -154,11 +160,13 @@ max_qubits=12
 
 sys.path.insert(1, "grovers/qsim")
 import grovers_benchmark
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 grovers_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -168,11 +176,13 @@ max_qubits=14
 
 sys.path.insert(1, "monte-carlo/qsim")
 import mc_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 mc_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -182,13 +192,15 @@ max_qubits=12
 
 sys.path.insert(1, "vqe/qsim")
 import vqe_benchmark
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 vqe_num_shots=4098
 vqe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 max_circuits=max_circuits, num_shots=vqe_num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -200,11 +212,13 @@ max_qubits=15
 
 sys.path.insert(1, "shors/qsim")
 import shors_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 shors_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, max_circuits=1, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 
@@ -216,13 +230,15 @@ sys.path.insert(1, "hhl/qsim")
 import hhl_benchmark
 
 hhl_benchmark.verbose=False
+cp.cuda.Device(1).use()
+print('running on GPU 1')
 
 hhl_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1, use_best_widths=True,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
-toggle_cuda_visible_devices()
+
 
 
 # -----------------------------------------------MaxCut-QAOA-Algorithm---------------------------------------------
@@ -231,6 +247,8 @@ max_qubits=10
 
 sys.path.insert(1, "maxcut/qsim")
 import maxcut_benchmark
+cp.cuda.Device(0).use()
+print('running on GPU 0')
 
 maxcut_benchmark.run(
     min_qubits=min_qubits, max_qubits=max_qubits, max_circuits=max_circuits, num_shots=num_shots,
@@ -238,7 +256,7 @@ maxcut_benchmark.run(
     backend_id=backend_id, provider_backend=provider_backend,
     exec_options=exec_options
 )
-toggle_cuda_visible_devices()
+
 
 # ---------------------------------------------Creation of xls file from __data/*****.json file---------------------------------------------
 
