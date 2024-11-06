@@ -263,7 +263,7 @@ hhl_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip
 
 # -----------------------------------------------MaxCut-QAOA-Algorithm---------------------------------------------
 
-max_qubits=10
+max_qubits=14
 
 sys.path.insert(1, "maxcut/qsim")
 import maxcut_benchmark
