@@ -8,7 +8,7 @@ import execute as ex
 import metrics as metrics
 
 metrics.show_plot_images = False
-metrics.data_suffix = "_noisy"
+metrics.data_suffix = "_noisefree"
 
 min_qubits=6
 max_qubits=15
@@ -19,35 +19,17 @@ backend_id="dm_simulator"
 provider_backend = None
 exec_options = {}
 
-# noise parameters for dm-simulator (introduce noise by changing the values)
-options_noise = {
-    'plot': False,
-    "thermal_factor": 0.9,
-    'show_partition': False,
-    "decoherence_factor": 1.0,
-    "depolarization_factor": 0.9,
-    "bell_depolarization_factor": 1.0,
-    "decay_factor": 1.0,
-    "rotation_error": {'rx': [1.0, 0.0], 'ry': [1.0, 0.0], 'rz': [1.0, 0.0]},
-    "tsp_model_error": [1.0, 0.0],
-}
-
-ex.options_noise = options_noise
-
 # -----------------------------------------------Deutsch-Jozsa-----------------------------------------------
 
 max_qubits=15
 
 sys.path.insert(1, "deutsch-jozsa/qsim")
 import dj_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 dj_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -57,15 +39,12 @@ max_qubits=15
 
 sys.path.insert(1, "bernstein-vazirani/qsim")
 import bv_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 bv_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -75,14 +54,11 @@ max_qubits=15
 
 sys.path.insert(1, "hidden-shift/qsim")
 import hs_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 hs_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -94,15 +70,12 @@ max_qubits=15
 
 sys.path.insert(1, "quantum-fourier-transform/qsim")
 import qft_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 # QFT Method-2
 
@@ -110,10 +83,6 @@ max_qubits=15
 
 sys.path.insert(1, "quantum-fourier-transform/qsim")
 import qft_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=2,
@@ -122,16 +91,13 @@ qft_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip
 
 
 
-# -----------------------------------------------Phase-Estimation-----------------------------------------------------
+
+# -----------------------------------------------Phase-Estimation-----------------------------------------------
 
 max_qubits=15
 
 sys.path.insert(1, "phase-estimation/qsim")
 import pe_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 pe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
@@ -139,20 +105,18 @@ pe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_
 
 
 
+
 # -----------------------------------------------Amplitude-Estimation-----------------------------------------------
 
-max_qubits=12
+max_qubits=13
 
 sys.path.insert(1, "amplitude-estimation/qsim")
 import ae_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 ae_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -162,10 +126,6 @@ max_qubits=15
 
 sys.path.insert(1, "hamiltonian-simulation/qsim")
 import hamiltonian_simulation_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 hamiltonian_simulation_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
@@ -173,37 +133,18 @@ hamiltonian_simulation_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubit
 
 
 
+
 # -----------------------------------------------Grover's-Search--------------------------------------------------
 
-max_qubits=9
+max_qubits=12
 
 sys.path.insert(1, "grovers/qsim")
 import grovers_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 grovers_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
 
-
-
-# -----------------------------------------------Monte-Carlo-Sampling----------------------------------------------
-
-max_qubits=12
-
-sys.path.insert(1, "monte-carlo/qsim")
-import mc_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
-mc_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
-                max_circuits=max_circuits, num_shots=num_shots,
-                backend_id=backend_id, provider_backend=provider_backend,
-                exec_options=exec_options)
 
 
 
@@ -213,16 +154,13 @@ max_qubits=12
 
 sys.path.insert(1, "vqe/qsim")
 import vqe_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 vqe_num_shots=4098
 vqe_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits,
                 max_circuits=max_circuits, num_shots=vqe_num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -234,14 +172,11 @@ max_qubits=15
 
 sys.path.insert(1, "shors/qsim")
 import shors_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 shors_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, max_circuits=1, num_shots=num_shots,
                 method=1,
                 backend_id=backend_id, provider_backend=provider_backend,
                 exec_options=exec_options)
+
 
 
 
@@ -251,12 +186,7 @@ max_qubits=15
 
 sys.path.insert(1, "hhl/qsim")
 import hhl_benchmark
-
-cp.cuda.Device(0).use()
-print('running on GPU 0')
-
 hhl_benchmark.verbose=False
-
 hhl_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
                 max_circuits=max_circuits, num_shots=num_shots,
                 method=1, use_best_widths=True,
@@ -271,10 +201,6 @@ max_qubits=14
 
 sys.path.insert(1, "maxcut/qsim")
 import maxcut_benchmark
-
-cp.cuda.Device(1).use()
-print('running on GPU 1')
-
 maxcut_benchmark.run(
     min_qubits=min_qubits, max_qubits=max_qubits, max_circuits=max_circuits, num_shots=num_shots,
     method=1, rounds=1, do_fidelities=True,
@@ -284,12 +210,27 @@ maxcut_benchmark.run(
 
 
 
+# -----------------------------------------------Monte-Carlo-Sampling----------------------------------------------
+
+max_qubits=14
+
+sys.path.insert(1, "monte-carlo/qsim")
+import mc_benchmark
+mc_benchmark.run(min_qubits=min_qubits, max_qubits=max_qubits, skip_qubits=skip_qubits,
+                max_circuits=max_circuits, num_shots=num_shots,
+                backend_id=backend_id, provider_backend=provider_backend,
+                exec_options=exec_options)
+
+
+
 # ---------------------------------------------Creation of xls file from __data/*****.json file---------------------------------------------
 
 # Define the benchmark folder and API as needed (leave blank to get json file from top-level __data folder)
 benchmark_folder = ''   
 api = ''               #qsim
-backend_id = 'dm_simulator_noisy'       
+backend_id = 'dm_simulator_noisefree'       
 
 # Call the json_to_excel function
 metrics.json_to_excel(benchmark_folder, api, backend_id)
+
+
