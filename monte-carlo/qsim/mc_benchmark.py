@@ -362,7 +362,7 @@ MIN_STATE_QUBITS_M1 = 2
 
 # Because circuit size grows significantly with num_qubits
 # limit the max_qubits here ...
-MAX_QUBITS=10
+MAX_QUBITS=15
 
 # Execute program with default parameters
 def run(min_qubits=MIN_QUBITS, max_qubits=7, skip_qubits=1, max_circuits=1, num_shots=100,

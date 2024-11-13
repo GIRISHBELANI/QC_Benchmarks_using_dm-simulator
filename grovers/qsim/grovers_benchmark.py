@@ -230,7 +230,7 @@ def grovers_dist(num_qubits, marked_item):
 
 # Because this circuit size grows significantly with num_qubits (due to the mcx gate)
 # limit the max_qubits here ...
-MAX_QUBITS=8
+MAX_QUBITS=15
 
 # Execute program with default parameters
 def run(min_qubits=2, max_qubits=6, skip_qubits=1, max_circuits=3, num_shots=100,
