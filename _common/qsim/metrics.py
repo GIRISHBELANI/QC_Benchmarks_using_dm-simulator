@@ -32,11 +32,12 @@
 import os
 import json
 import time
-from time import gmtime, strftime, localtime
+from time import gmtime, strftime
 from datetime import datetime, timedelta
 import traceback
 import matplotlib.cm as cm
 import copy
+import qcb_mpi as mpi
 
 # Raw and aggregate circuit metrics
 circuit_metrics = {  }
@@ -70,6 +71,9 @@ verbose = False
 # Option to save metrics to data file
 save_metrics = True
 
+# Option to merge new group metrics into existing
+merge_group_metrics = False
+
 # Suffix to append to filename of DATA- files
 data_suffix = ""
 
@@ -95,6 +99,9 @@ initial_elapsed_time_multiplier = 1.1
 # remove creating time from elapsed time when displaying (default)
 # this seems to remove queue time in some cases (IBM machines only)
 remove_creating_time_from_elapsed = True
+
+# For depth plots, show algorithmic and normalized plots on separate axes
+use_two_depth_axes = False
 
 # Option to generate volumetric positioning charts
 do_volumetric_plots = True
@@ -458,10 +465,22 @@ def report_metrics_for_group (group):
 def report_metrics ():   
     # loop over all groups and print metrics for that group
     for group in circuit_metrics:
-        report_metrics_for_group(group)
+        if mpi.leader():
+            report_metrics_for_group(group)
+
+import inspect
+def get_benchmark_id():
+    # Inspect the call stack to find the calling script
+    stack = inspect.stack()
+    for frame in stack:
+        caller_path = frame.filename
+        if "benchmark.py" in caller_path:
+            benchmark_folder = os.path.basename(os.path.dirname(os.path.dirname(caller_path)))
+            return benchmark_folder
+    return "unknown"
 
 # Aggregate and report on metrics for the given groups, if all circuits in the group are complete
-def finalize_group(group, report=True):
+def finalize_group(group, report=True, benchmark_id=None):
     group = str(group)
     
     #print(f"... finalize group={group}")
@@ -478,16 +497,20 @@ def finalize_group(group, report=True):
     #print(f"  ... group_done = {group} {group_done}")
     if group_done and report:
         aggregate_metrics_for_group(group)
-        print("************")
-        report_metrics_for_group(group)
+        if mpi.leader():
+            print("************")
+            report_metrics_for_group(group)
         
+    if benchmark_id is None:
+        benchmark_id = get_benchmark_id()
+    
     # sort the group metrics (sometimes they come back out of order)
-    sort_group_metrics()
+    sort_group_metrics(benchmark_id=benchmark_id, backend_id=get_backend_id())
     
 #finalize_group(group, report=True);
 
 # sort the group array as integers, then all metrics relative to it
-def sort_group_metrics():
+def sort_group_metrics(benchmark_id=None, backend_id=None, save_path="execution_log.json"):
 
     # get groups as integer, then sort each metric with it
     igroups = [int(group) for group in group_metrics["groups"]]
@@ -499,6 +522,28 @@ def sort_group_metrics():
     # save the sorted group names when all done 
     xy = sorted(zip(igroups, group_metrics["groups"]))    
     group_metrics["groups"] = [y for x, y in xy]
+
+    # Prepare full snapshot under benchmark_id (and optionally backend)
+    new_entry = {
+        "backend_id": backend_id or "unknown",
+        "group_metrics": group_metrics
+    }
+
+    # Load existing file or create new
+    if os.path.exists(save_path):
+        with open(save_path) as f:
+            all_benchmark_data = json.load(f)
+    else:
+        all_benchmark_data = {}
+
+    # Add or update current benchmark block
+    all_benchmark_data[benchmark_id] = new_entry
+
+    # Save everything back to disk
+    with open(save_path, "w") as f:
+        json.dump(all_benchmark_data, f, indent=2)
+
+    # print(f" Appended metrics for '{benchmark_id}' to '{save_path}'")
 
 
 ######################################################
@@ -526,8 +571,9 @@ def finalize_group_2_level(group):
         process_circuit_metrics_2_level(group)
         
         aggregate_metrics_for_group(group)
-        print("************")
-        report_metrics_for_group(group)
+        if mpi.leader():
+            print("************")
+            report_metrics_for_group(group)
         
     # sort the group metrics (sometimes they come back out of order)
     sort_group_metrics()
@@ -618,7 +664,7 @@ def process_iteration_metrics(group_id):
                 iterations_metrics[g_id][key] = []
             
             iterations_metrics[g_id][key].append(value)
-      
+
     del circuit_metrics[g_id]
     return iterations_metrics
 
@@ -898,7 +944,17 @@ import matplotlib.pyplot as plt
 dir_path = os.path.dirname(os.path.realpath(__file__))
 maxcut_style = os.path.join(dir_path,'maxcut.mplstyle')
 # plt.style.use(style_file)
-    
+
+
+# Delete execution_log.json if it exists
+def delete_metrics_file(path="execution_log.json"):
+    if os.path.exists(path):
+        os.remove(path)
+        # print(f"Deleted '{path}'")
+    else:
+        print(f"File '{path}' not found. Nothing to delete.")
+
+
 # Plot bar charts for each metric over all groups
 def plot_metrics (suptitle="Circuit Width (Number of Qubits)", transform_qubit_group = False, new_qubit_group = None, filters=None, suffix="", options=None):
     
@@ -958,6 +1014,10 @@ def plot_metrics (suptitle="Circuit Width (Number of Qubits)", transform_qubit_g
         if "depth" not in filters: do_depths = False
         if "2q" not in filters: do_2qs = False
         if "vbplot" not in filters: do_vbplot = False
+        
+        # this is a way to turn these on, if aq_mode not used
+        if "hf_fidelity" in filters: do_hf_fidelities = True
+        if "2q" in filters: do_2qs = True
     
     # generate one-column figure with multiple bar charts, with shared X axis
     cols = 1
@@ -1259,12 +1319,48 @@ def plot_metrics (suptitle="Circuit Width (Number of Qubits)", transform_qubit_g
             axs[axi].set_xticks(groups)
             axs[axi].set_xticklabels(xlabels)
             
-        if max(group_metrics["avg_tr_depths"]) < 20:
-            axs[axi].set_ylim([0, 20])  
-        axs[axi].grid(True, axis = 'y', color='silver', zorder = 0)
-        axs[axi].bar(groups, group_metrics["avg_depths"], 0.8, zorder = 3)
-        axs[axi].bar(groups, group_metrics["avg_tr_depths"], 0.5, color='C9', zorder = 3) 
-        axs[axi].set_ylabel('Circuit Depth')
+        # using one axis for circuit depth
+        if not use_two_depth_axes:
+        
+            if max(group_metrics["avg_tr_depths"]) < 20:
+                axs[axi].set_ylim([0, 20])  
+            axs[axi].grid(True, axis = 'y', color='silver', zorder = 0)
+            axs[axi].bar(groups, group_metrics["avg_depths"], 0.8, zorder = 3)
+            axs[axi].bar(groups, group_metrics["avg_tr_depths"], 0.5, color='C9', zorder = 3) 
+            axs[axi].set_ylabel('Circuit Depth')
+            
+        # using two axes for circuit depth
+        else:
+        
+            ax2 = axs[axi].twinx()
+            
+            if max(group_metrics["avg_depths"]) < 20:
+                axs[axi].set_ylim([0, 2 * 20]) 
+            else:
+                axs[axi].set_ylim([0, 2 * max(group_metrics["avg_depths"])])
+                
+            if max(group_metrics["avg_tr_depths"]) < 20:
+                axs[axi].set_ylim([0, 20])
+            
+            # plot algo and normalized depth on same axis, but norm is invisible
+            axs[axi].grid(True, axis = 'y', color='silver', zorder = 0)
+            axs[axi].set_ylabel('Algorithmic Circuit Depth')
+            
+            axs[axi].bar(groups, group_metrics["avg_depths"], 0.8, zorder = 3)
+            
+            # use width = 0 to make it invisible
+            yy0 = [0.0 for y in group_metrics["avg_tr_depths"]]
+            axs[axi].bar(groups, yy0, 0.0, color='C9', zorder = 3) 
+            #axs[axi].bar(groups, group_metrics["avg_tr_depths"], 0.0, color='C9', zorder = 3)
+            
+            # plot normalized on second axis
+            if max(group_metrics["avg_tr_depths"]) < 20:
+                ax2.set_ylim([0, 20])
+                
+            ax2.grid(True, axis = 'y', color='silver', ls='dashed', zorder = 0)
+            ax2.set_ylabel('Normalized Circuit Depth')
+            
+            ax2.bar(groups, group_metrics["avg_tr_depths"], 0.45, color='C9', zorder = 3)
         
         if rows > 0 and not xaxis_set:
             axs[axi].sharex(axs[rows-1])
@@ -1425,6 +1521,8 @@ def plot_metrics (suptitle="Circuit Width (Number of Qubits)", transform_qubit_g
         if show_plot_images:
             plt.show()
 
+    delete_metrics_file()   # Delete execution_log.json if it exists
+
 # Return the minimum value in an array, but if all elements 0, return 0.001
 def get_nonzero_min(array):
     f_array = list(filter(lambda x: x > 0, array)) 
@@ -1543,6 +1641,8 @@ def plot_metrics_all_overlaid (shared_data, backend_id, suptitle=None, imagename
     if show_plot_images:
         plt.show()
 
+    delete_metrics_file()   # Delete execution_log.json if it exists
+
 
 #################################################
 
@@ -1607,7 +1707,7 @@ def plot_metrics_all_merged (shared_data, backend_id, suptitle=None,
         
         # Note: the following loop is required, as it creates the array of annotation points
         # In this merged version of plottig, we suppress the border as it is already drawn
-        appname = None;
+        appname = None
         for app in shared_data:
         
             # Extract shorter app name from the title passed in by user
@@ -1719,7 +1819,7 @@ def plot_merged_result_rectangles(shared_data, ax, max_qubits, w_max, num_grads=
             
             if max_depth > 0 and d_tr_data[i] > max_depth:
                 print(f"... excessive depth, skipped; w={y} d={d_tr_data[i]}")
-                break;
+                break
                     
             # reject cells with low fidelity
             if suppress_low_fidelity and f < suppress_low_fidelity_level:
@@ -1736,7 +1836,7 @@ def plot_merged_result_rectangles(shared_data, ax, max_qubits, w_max, num_grads=
             
             if x > max_depth_log - 1:
                 print(f"... data out of chart range, skipped; w={y} d={d_tr_data[i]}")
-                break;
+                break
                 
             for grad in range(num_grads):
                 e = depth_values_merged[int(w_data[i])][int(xp + grad)]
@@ -2242,10 +2342,10 @@ def linearize_axis(values, gap=2, outer=2, fill=True):
     gaps_exist = False
     
     # add labels at beginning
-    basis = [None] * outer;
+    basis = [None] * outer
 
     # loop over values and generate new values that are separated by the gap value
-    newvalues = [];
+    newvalues = []
     for i in range(len(values)):
         newvalues.append(values[i])
         
@@ -2826,9 +2926,16 @@ def store_app_metrics (backend_id, circuit_metrics, group_metrics, app, start_ti
     if app not in shared_data:
         shared_data[app] = { "circuit_metrics":None, "group_metrics":None }
     
-    shared_data[app]["backend_id"] = backend_id
-    shared_data[app]["start_time"] = start_time
-    shared_data[app]["end_time"] = end_time
+    # if merging data, merge the new data into the existing group metrics
+    if merge_group_metrics:
+        #merged_metrics = do_merge_group_metrics(existing_metrics, new_metrics) 
+        shared_data[app]["group_metrics"] = do_merge_group_metrics(shared_data[app]["group_metrics"], group_metrics) 
+    
+    # otherwise overwrite (the default mode)
+    else:
+        shared_data[app]["backend_id"] = backend_id
+        shared_data[app]["start_time"] = start_time
+        shared_data[app]["end_time"] = end_time
     
     shared_data[app]["group_metrics"] = group_metrics
 
@@ -2902,7 +3009,34 @@ def load_app_metrics (api, backend_id):
         
     return shared_data
             
+
+# Merge a new set of metrics into the existing set
+def do_merge_group_metrics(existing_metrics, new_metrics):
+
+    # Create a dictionary to map groups to their index in the existing metrics
+    group_index_map = {group: idx for idx, group in enumerate(existing_metrics['groups'])}
+
+    # Iterate through the new metrics
+    for idx, group in enumerate(new_metrics['groups']):
+        if group in group_index_map:
+            # If the group exists, update its metrics
+            existing_idx = group_index_map[group]
+            for key in existing_metrics:
+                if key != 'groups':
+                    existing_metrics[key][existing_idx] = new_metrics[key][idx]
+        else:
+            # If the group doesn't exist, add it to the existing metrics
+            existing_metrics['groups'].append(group)
+            for key in existing_metrics:
+                if key != 'groups':
+                    existing_metrics[key].append(new_metrics[key][idx])
             
+            # Update the group_index_map
+            group_index_map[group] = len(existing_metrics['groups']) - 1
+
+    return existing_metrics
+          
+          
 ##############################################
 # VOLUMETRIC PLOT
 
@@ -3553,14 +3687,14 @@ def plot_volumetric_data(ax, w_data, d_data, f_data, depth_base=2, label='Depth'
         # DEVNOTE: this is highly specialized for the QA area plots, where there are 8 bars
         # that represent time starting from 0 secs.  We offset by one pixel each and center the group
         if y != last_y:
-            last_y = y;
+            last_y = y
             k = 3              # hardcoded for 8 cells, offset by 3
         
         #print(f"{i = } {x = } {y = }")
         
         if max_depth > 0 and d_data[i] > max_depth:
             #print(f"... excessive depth (2), skipped; w={y} d={d_data[i]}")
-            break;
+            break
             
         # reject cells with low fidelity
         if suppress_low_fidelity and f < suppress_low_fidelity_level:
