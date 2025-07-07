@@ -512,6 +512,9 @@ def finalize_group(group, report=True, benchmark_id=None):
 # sort the group array as integers, then all metrics relative to it
 def sort_group_metrics(benchmark_id=None, backend_id=None, save_path="execution_log.json"):
 
+    if benchmark_id is None:
+        benchmark_id = "unknown"
+
     # get groups as integer, then sort each metric with it
     igroups = [int(group) for group in group_metrics["groups"]]
     for key in group_metrics:
@@ -541,7 +544,7 @@ def sort_group_metrics(benchmark_id=None, backend_id=None, save_path="execution_
 
     # Save everything back to disk
     with open(save_path, "w") as f:
-        json.dump(all_benchmark_data, f, indent=2)
+        json.dump(all_benchmark_data, f, indent=2, sort_keys=True)
 
     # print(f" Appended metrics for '{benchmark_id}' to '{save_path}'")
 
